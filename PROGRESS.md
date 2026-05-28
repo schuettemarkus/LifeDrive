@@ -10,7 +10,7 @@ Tracking the milestones from the build prompt. Commit after each.
 | 4 | Idempotent seed script (`life-drive-seed-data.json`) | ✅ shipped |
 | 5 | Capture + Anthropic AI triage route | ✅ shipped |
 | 6 | Prioritization engine → wire "Today's 3" to real data | ✅ shipped |
-| 7 | Project decomposition / next actions (Anthropic) | ⏳ |
+| 7 | Project decomposition / next actions (Anthropic) | ✅ shipped |
 | 8 | Google Calendar OAuth + read (day/week views) | ⏳ |
 | 9 | Auto-scheduling + write-back | ⏳ |
 | 10 | Balance wheel + principles + workouts surfaces | ⏳ |

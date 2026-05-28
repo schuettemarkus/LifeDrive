@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/glass/PageHeader";
 import { GlassCard } from "@/components/glass/GlassCard";
 import { AreaPill } from "@/components/glass/AreaPill";
+import { BreakdownButton } from "@/components/item/BreakdownButton";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getCurrentHouseholdId } from "@/lib/household";
 import { formatMinutes } from "@/lib/utils";
@@ -62,34 +63,25 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
         )}
         {typed.type === "project" && (
           <GlassCard inset>
-            <div className="flex items-center justify-between">
+            <div className="mb-3 flex items-center justify-between">
               <p className="text-[10px] uppercase tracking-[0.18em] text-white/40">subtasks</p>
-              <BreakdownButton itemId={typed.id} />
             </div>
-            <ul className="mt-3 space-y-2">
-              {subtasks.length === 0 && (
-                <li className="text-sm text-white/55">No subtasks yet. Ask the AI to break this down.</li>
-              )}
-              {subtasks.map((c) => (
-                <li key={c.id} className="flex items-start gap-2 text-[14px] text-white/85">
-                  <span className={`mt-1 inline-block h-2 w-2 shrink-0 rounded-full ${c.is_next_action ? "bg-accent-cyan" : "bg-white/30"}`} />
-                  <span className="flex-1">{c.title}</span>
-                  <span className="text-[11px] text-white/45">{formatMinutes(c.effort_minutes)}</span>
-                </li>
-              ))}
-            </ul>
+            {subtasks.length === 0 ? (
+              <BreakdownButton itemId={typed.id} />
+            ) : (
+              <ul className="space-y-2">
+                {subtasks.map((c) => (
+                  <li key={c.id} className="flex items-start gap-2 text-[14px] text-white/85">
+                    <span className={`mt-1 inline-block h-2 w-2 shrink-0 rounded-full ${c.is_next_action ? "bg-accent-cyan" : "bg-white/30"}`} />
+                    <span className="flex-1">{c.title}</span>
+                    <span className="text-[11px] text-white/45">{formatMinutes(c.effort_minutes)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </GlassCard>
         )}
       </section>
     </main>
-  );
-}
-
-function BreakdownButton({ itemId }: { itemId: string }) {
-  // Client-only behavior added in milestone 7. For now this is a label.
-  return (
-    <span className="rounded-pill border border-white/10 bg-white/5 px-2 py-1 text-[10px] uppercase tracking-wider text-white/55">
-      ai breakdown · soon
-    </span>
   );
 }
