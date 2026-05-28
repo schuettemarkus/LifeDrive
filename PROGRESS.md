@@ -11,7 +11,7 @@ Tracking the milestones from the build prompt. Commit after each.
 | 5 | Capture + Anthropic AI triage route | ✅ shipped |
 | 6 | Prioritization engine → wire "Today's 3" to real data | ✅ shipped |
 | 7 | Project decomposition / next actions (Anthropic) | ✅ shipped |
-| 8 | Google Calendar OAuth + read (day/week views) | ⏳ |
+| 8 | Google Calendar OAuth + read (day/week views) | ✅ shipped |
 | 9 | Auto-scheduling + write-back | ⏳ |
 | 10 | Balance wheel + principles + workouts surfaces | ⏳ |
 | 11 | Weekly review + delegation polish + PWA hardening | ⏳ |
