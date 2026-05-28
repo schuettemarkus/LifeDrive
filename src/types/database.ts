@@ -134,27 +134,37 @@ export interface GoogleAccount {
   updated_at: string;
 }
 
+type TableShape<Row> = {
+  Row: Row;
+  Insert: { [K in keyof Row]?: Row[K] } & Record<string, unknown>;
+  Update: { [K in keyof Row]?: Row[K] } & Record<string, unknown>;
+  Relationships: [];
+};
+
 export type Database = {
   public: {
     Tables: {
-      profiles: { Row: Profile; Insert: Partial<Profile> & { id: string }; Update: Partial<Profile> };
-      households: { Row: Household; Insert: Partial<Household> & { name: string }; Update: Partial<Household> };
-      household_members: {
-        Row: HouseholdMember;
-        Insert: Omit<HouseholdMember, "joined_at"> & { joined_at?: string };
-        Update: Partial<HouseholdMember>;
-      };
-      invites: { Row: Invite; Insert: Partial<Invite> & { household_id: string; email: string; token: string }; Update: Partial<Invite> };
-      items: { Row: Item; Insert: Partial<Item> & { household_id: string; title: string }; Update: Partial<Item> };
-      schedule_blocks: {
-        Row: ScheduleBlock;
-        Insert: Partial<ScheduleBlock> & { item_id: string; user_id: string; starts_at: string; ends_at: string };
-        Update: Partial<ScheduleBlock>;
-      };
-      principles: { Row: Principle; Insert: Partial<Principle> & { household_id: string; text: string }; Update: Partial<Principle> };
-      workouts: { Row: Workout; Insert: Partial<Workout> & { user_id: string; name: string }; Update: Partial<Workout> };
-      reviews: { Row: Review; Insert: Partial<Review> & { household_id: string; user_id: string; week_start: string }; Update: Partial<Review> };
-      google_accounts: { Row: GoogleAccount; Insert: GoogleAccount; Update: Partial<GoogleAccount> };
+      profiles: TableShape<Profile>;
+      households: TableShape<Household>;
+      household_members: TableShape<HouseholdMember>;
+      invites: TableShape<Invite>;
+      items: TableShape<Item>;
+      schedule_blocks: TableShape<ScheduleBlock>;
+      principles: TableShape<Principle>;
+      workouts: TableShape<Workout>;
+      reviews: TableShape<Review>;
+      google_accounts: TableShape<GoogleAccount>;
     };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: {
+      item_type: ItemType;
+      item_status: ItemStatus;
+      item_visibility: ItemVisibility;
+      item_source: ItemSource;
+      schedule_status: ScheduleStatus;
+      household_role: HouseholdRole;
+    };
+    CompositeTypes: Record<string, never>;
   };
 };
