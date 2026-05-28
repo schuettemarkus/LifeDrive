@@ -14,7 +14,7 @@ Tracking the milestones from the build prompt. Commit after each.
 | 8 | Google Calendar OAuth + read (day/week views) | ✅ shipped |
 | 9 | Auto-scheduling + write-back | ✅ shipped |
 | 10 | Balance wheel + principles + workouts surfaces | ✅ shipped |
-| 11 | Weekly review + delegation polish + PWA hardening | ⏳ |
+| 11 | Weekly review + delegation polish + PWA hardening | ✅ shipped |
 
 ## Milestone 1 — what shipped
 
@@ -37,3 +37,12 @@ The aesthetic is locked first, per the build order. Real data + auth land next.
 - Auth pages: `/auth/sign-in` (magic link **and** Google OAuth with `calendar.readonly` + `calendar.events` scopes), `/auth/callback` (exchanges code for session + persists Google refresh token into `google_accounts` server-side), `/auth/sign-out`.
 - Household lifecycle: `src/lib/household.ts` (`createHousehold`, `createInvite`, `acceptInvite`) + API routes at `/api/households`, `/api/invites`, `/api/invites/accept`. Onboarding screens at `/onboarding/household` and `/onboarding/join`.
 - `supabase/config.toml` for local dev (`supabase start`). Health route at `/api/health` for env presence + uptime.
+
+## Milestone 11 — what shipped
+
+- **Weekly review** at `/review`: real shipped count (this week), completion % (shipped / shipped+planned), balance wheel + per-area delta vs target, "stage next week" that pulls the top-12 backlog items into `this_week` via `/api/review/stage-next-week`.
+- **Household management** at `/settings/household`: list members with role, generate + copy invite link (`/api/invites` returns a one-shot URL), pending invites table.
+- **PWA offline hardening**: Serwist fallback to `/offline` for any document request that can't be served from cache. Service worker now precaches the route map and falls back gracefully on the iPhone home-screen launch when there's no signal.
+- All routes that need a session are gated by `middleware.ts`; demo mode (no env vars) keeps the surface renderable for marketing / preview deploys.
+
+This closes the build prompt. The Definition of Done from the brief — install to home screen, brain-dump 30 items, plan, accept events into Google, swipe to complete, see the weekly review — is end-to-end functional once Supabase + Anthropic + Google env vars are set on Vercel.
