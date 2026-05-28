@@ -1,6 +1,13 @@
 /**
- * Generated-style database types. Hand-written for clarity until we
- * generate from supabase. Mirrors supabase/migrations/0001_init.sql.
+ * Hand-written database types that satisfy @supabase/supabase-js v2's
+ * GenericSchema constraint. Notably:
+ *   - Every Row/Insert/Update must be assignable to {[k: string]: unknown}.
+ *     TypeScript only allows this for `type` aliases, NOT for `interface`
+ *     declarations. Keep these as `type`.
+ *   - The public schema must expose Tables, Views, Functions, Enums,
+ *     CompositeTypes — even when empty — or the entire table type
+ *     collapses to `never` and `.update()/.insert()` arguments become
+ *     uncallable.
  */
 import type { LifeAreaKey } from "@/lib/design";
 
@@ -14,7 +21,7 @@ export type HouseholdRole = "owner" | "member";
 export type WorkingHours = { start: string; end: string };
 export type FocusWindow = { start: string; end: string; label?: string };
 
-export interface Profile {
+export type Profile = {
   id: string;
   display_name: string | null;
   avatar_url: string | null;
@@ -24,23 +31,23 @@ export interface Profile {
   energy_windows: FocusWindow[];
   timezone: string;
   created_at: string;
-}
+};
 
-export interface Household {
+export type Household = {
   id: string;
   name: string;
   created_by: string | null;
   created_at: string;
-}
+};
 
-export interface HouseholdMember {
+export type HouseholdMember = {
   household_id: string;
   user_id: string;
   role: HouseholdRole;
   joined_at: string;
-}
+};
 
-export interface Invite {
+export type Invite = {
   id: string;
   household_id: string;
   email: string;
@@ -50,9 +57,9 @@ export interface Invite {
   accepted_by: string | null;
   accepted_at: string | null;
   created_at: string;
-}
+};
 
-export interface Item {
+export type Item = {
   id: string;
   household_id: string;
   created_by: string | null;
@@ -77,9 +84,9 @@ export interface Item {
   created_at: string;
   updated_at: string;
   completed_at: string | null;
-}
+};
 
-export interface ScheduleBlock {
+export type ScheduleBlock = {
   id: string;
   item_id: string;
   user_id: string;
@@ -89,9 +96,9 @@ export interface ScheduleBlock {
   status: ScheduleStatus;
   created_at: string;
   updated_at: string;
-}
+};
 
-export interface Principle {
+export type Principle = {
   id: string;
   household_id: string;
   author_id: string | null;
@@ -100,9 +107,9 @@ export interface Principle {
   active: boolean;
   last_shown_at: string | null;
   created_at: string;
-}
+};
 
-export interface Workout {
+export type Workout = {
   id: string;
   user_id: string;
   day_of_week: number | null;
@@ -111,9 +118,9 @@ export interface Workout {
   exercises: string[];
   completed_at: string | null;
   created_at: string;
-}
+};
 
-export interface Review {
+export type Review = {
   id: string;
   household_id: string;
   user_id: string;
@@ -121,9 +128,9 @@ export interface Review {
   stats: Record<string, unknown>;
   reflection: string | null;
   created_at: string;
-}
+};
 
-export interface GoogleAccount {
+export type GoogleAccount = {
   user_id: string;
   google_sub: string;
   access_token: string;
@@ -132,12 +139,12 @@ export interface GoogleAccount {
   scopes: string[];
   created_at: string;
   updated_at: string;
-}
+};
 
 type TableShape<Row> = {
   Row: Row;
-  Insert: { [K in keyof Row]?: Row[K] } & Record<string, unknown>;
-  Update: { [K in keyof Row]?: Row[K] } & Record<string, unknown>;
+  Insert: { [K in keyof Row]?: Row[K] };
+  Update: { [K in keyof Row]?: Row[K] };
   Relationships: [];
 };
 
