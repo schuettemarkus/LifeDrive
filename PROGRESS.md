@@ -12,7 +12,7 @@ Tracking the milestones from the build prompt. Commit after each.
 | 6 | Prioritization engine → wire "Today's 3" to real data | ✅ shipped |
 | 7 | Project decomposition / next actions (Anthropic) | ✅ shipped |
 | 8 | Google Calendar OAuth + read (day/week views) | ✅ shipped |
-| 9 | Auto-scheduling + write-back | ⏳ |
+| 9 | Auto-scheduling + write-back | ✅ shipped |
 | 10 | Balance wheel + principles + workouts surfaces | ⏳ |
 | 11 | Weekly review + delegation polish + PWA hardening | ⏳ |
 
