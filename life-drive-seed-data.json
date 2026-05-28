@@ -1,0 +1,261 @@
+{
+  "_meta": {
+    "description": "Real seed data for Life Drive, extracted from the owner's life-dashboard dump. Load idempotently on first run into the schema described in the build prompt. Life areas, effort estimates, and type (task vs project) for the loose items were inferred and are meant to be user-editable in the app.",
+    "household": {
+      "name": "Home base",
+      "adults": ["Markus", "Sarah"],
+      "kids": ["Nova", "Roman"],
+      "note": "Seed Markus + Sarah as members; kids are family members for delegation/calendar, not login accounts unless requested."
+    },
+    "default_status_for_seeded_items": "backlog"
+  },
+
+  "owner_profile": {
+    "_note": "Seed onto the owner's profile (Markus). Drives auto-scheduling: place top-priority / deep-work tasks into the focus_windows first.",
+    "timezone": "America/Denver",
+    "working_hours": { "start": "06:00", "end": "21:00" },
+    "focus_windows": [
+      { "start": "06:00", "end": "07:00", "label": "Early morning deep work" },
+      { "start": "10:00", "end": "12:00", "label": "Late-morning deep work" }
+    ]
+  },
+
+  "life_areas": [
+    { "key": "family",   "name": "Family",   "color": "#FF6B6B", "target_weekly_pct": 20 },
+    { "key": "health",   "name": "Health",   "color": "#2DD4A7", "target_weekly_pct": 20 },
+    { "key": "home",     "name": "Home",     "color": "#FFB020", "target_weekly_pct": 20 },
+    { "key": "career",   "name": "Career",   "color": "#3B9EFF", "target_weekly_pct": 15 },
+    { "key": "money",    "name": "Money",    "color": "#34D399", "target_weekly_pct": 10 },
+    { "key": "growth",   "name": "Growth",   "color": "#A78BFA", "target_weekly_pct": 10 },
+    { "key": "creative", "name": "Creative", "color": "#F472B6", "target_weekly_pct": 5  }
+  ],
+
+  "principles": {
+    "_note": "The owner's curated life-lesson deck. Surface one per day on the Daily Drive, rotating, avoiding recent repeats. Grouped by the owner's own themes; 'area' is a suggested filter tag.",
+    "meaning_and_success": [
+      "I don't experience life, I experience the life I focus on. Focus equals reality.",
+      "People will judge you either way, so you might as well live.",
+      "Every minute wasted in disorder is a dream delayed.",
+      "Order your thoughts, order your space, order your actions. Discipline your hours as if they were diamonds, because they are.",
+      "Time is the currency of greatness, and only those who spend it wisely ever buy freedom.",
+      "When you master your time, you master your life.",
+      "When your life is in order, your dreams no longer wait — they arrive.",
+      "Inspiration is perishable. Act on it immediately.",
+      "Wisdom is the discarding of vices and the return to virtue by way of knowledge.",
+      "Everything is more beautiful because we are doomed. You will never be more lovely than now, and we will never be here again.",
+      "Science is the study of truth, and math is the language of nature.",
+      "Impatience with actions, patience with results.",
+      "Enlightenment is the space between your thoughts.",
+      "Peace is happiness at rest; happiness is peace in motion.",
+      "Three decisions decide our moment and our life: what to focus on, what it means, and what I'm going to do.",
+      "Whatever you focus on becomes real for you, even if it isn't reality.",
+      "Ask of any setback: is this a gift to help me grow?",
+      "Success isn't sustained through tactics, it's sustained through transformation.",
+      "You don't get what you wish for, you get what you're willing to become.",
+      "Success is 5% strategy and 95% mindset.",
+      "Challenges are what make life interesting; overcoming them is what makes life meaningful.",
+      "The ultimate financial goal is freedom: the ability to do what you want, when you want.",
+      "Financial freedom is turning income into long-term assets that build forever.",
+      "The business of life is the acquisition of memories — spend money on our rich life.",
+      "Interpret ambiguous communication charitably. Give the benefit of the doubt."
+    ],
+    "action_and_consistency": [
+      "Set up systems, not goals.",
+      "The current environment programs the brain, but the clever brain can choose its upcoming environment.",
+      "It's not educated vs. uneducated; it's people who like to read vs. those who don't.",
+      "Your routine is your destiny in slow motion.",
+      "Your current life is just the scoreboard of millions of micro-decisions you've made.",
+      "The more prepared I am, the luckier I seem to be.",
+      "Greatness begins one early morning at a time.",
+      "Take consistent, imperfect action to get 1% better every day.",
+      "Consistency and patience are the keys to success.",
+      "Discipline is the bridge between thought and reality.",
+      "Motivation gets us started; habit keeps us going.",
+      "Every adversity carries with it the seed of an equal or greater benefit.",
+      "Focus on the fundamentals.",
+      "Determined imagination — thinking from the end — is the beginning of all miracles.",
+      "You don't work toward it, you go there: already there in your mind, then emotionally, then physically.",
+      "Lifestyle design is based on massive output. Increased output requires decreased input.",
+      "Most information is time-consuming, negative, irrelevant to your goals, and outside your influence.",
+      "Science applied is the engine of humanity."
+    ],
+    "health_and_bliss": [
+      "To stay flexible is to stay young. Mobility is youth.",
+      "Desire is a contract you make with yourself to be unhappy until you get what you want.",
+      "Your most precious resource is energy. Protect it at all costs.",
+      "Freedom is having nothing to chase, nothing to prove, and nothing to hide.",
+      "Great minds discuss ideas; average minds discuss events; small minds discuss people.",
+      "Anything that triggers you is teaching you what part of yourself needs healing.",
+      "Judging a person doesn't define who they are, it defines who you are.",
+      "I am whole, worthy, strong, powerful, loving, free, and happy.",
+      "Sleep 7–9 hours, eat a small surplus of high-protein whole foods, train 2–3x a week, and apply progressive overload.",
+      "Follow your bliss. Do what makes you happiest in every moment.",
+      "Become more aware of my oneness with infinite intelligence — built through intentional repetition.",
+      "How to release anger: name it, breathe it, move it, done.",
+      "How you think creates how you feel; feeling becomes emotion, emotion becomes vibration, vibration becomes a magnet.",
+      "Only think about what you want; forget what you don't want; never speak about what you don't have.",
+      "If there's no enemy inside your mind, no enemy outside can harm you.",
+      "Don't look out the window, look in the mirror.",
+      "Do you. Do what you want and be good at it — just make sure it's good to you and for you."
+    ]
+  },
+
+  "workout_split": {
+    "_note": "Recurring weekly. Seed as workouts keyed by day_of_week; regenerate each week. One-tap complete on the Daily Drive.",
+    "monday":    { "name": "Push", "exercises": ["Bench - 10 sets", "Dips - 5 sets", "Leg raises - 10 sets of 10 (10 min)", "Arm curls - 100 reps each arm (5 min)"] },
+    "tuesday":   { "name": "Pull", "exercises": ["Bent-over barbell rows - 3 warmup upright + 10 sets", "Leg raises - 10 sets of 10 (10 min)", "Arm curls - 100 reps each arm (5 min)"] },
+    "wednesday": { "name": "Legs", "exercises": ["Squats - 10 sets", "Leg raises - 10 sets of 10 (10 min)", "Arm curls - 100 reps each arm (5 min)"] },
+    "thursday":  { "name": "Push", "exercises": ["Overhead press - 10 sets", "Incline press - 3 sets", "Leg raises - 10 sets of 10 (10 min)", "Arm curls - 100 reps each arm (5 min)"] },
+    "friday":    { "name": "Pull", "exercises": ["Pullups - follow MyCoach program", "Leg raises - 10 sets of 10 (10 min)", "Arm curls - 100 reps each arm (5 min)"] },
+    "saturday":  { "name": "Legs", "exercises": ["Romanian deadlifts - 10 sets", "Leg raises - 10 sets of 10 (10 min)", "Arm curls - 100 reps each arm (5 min)"] },
+    "sunday":    { "name": "Active recovery", "exercises": ["Run or walk"] }
+  },
+
+  "goals_2026": {
+    "_note": "Seed as top-level projects with measurable targets feeding the balance wheel and weekly review.",
+    "health": {
+      "exercise_daily": { "targets": ["4 workouts / week", "1x 60-min walk / week", "2x pickleball / week"] },
+      "eat_healthy": { "targets": ["Don't buy junk", "Don't eat out", "Meal prep high-protein: overnight oats; chicken, rice & beans; breakfast burritos"] }
+    },
+    "finance": {
+      "save_money": { "targets": ["Don't eat out", "Don't buy alcohol", "Don't buy junk", "Make coffee + meal prep at home"] },
+      "buy_family_suv": { "status": "open" },
+      "investing": { "targets": ["Match 401k (done)", "Max Sarah Roth IRA — set up auto transfer", "Max Markus Roth IRA (done)", "Contribute kids 529 (done)", "Contribute kids Ally Investments (done)"] }
+    }
+  },
+
+  "projects": [
+    { "title": "Kitchen remodel", "area": "home", "effort_minutes": 7200, "next_step": "Measure countertops and order Ikea butcher board", "subtasks": ["Buy and install backsplash", "Buy and install kitchen sink (Oma will buy)", "Paint kitchen cabinets", "Buy and install countertops (Ikea butcher board)", "New stove"] },
+    { "title": "Garage remodel", "area": "home", "effort_minutes": 2400, "next_step": "Buy hexagon lights", "subtasks": ["Buy hexagon lights", "Patch and paint walls", "Buy garage gym floor mats (see Z text)", "Organize garage"] },
+    { "title": "Patio / barn build", "area": "home", "effort_minutes": 9600, "next_step": "Finalize design plans and get contractor quotes", "subtasks": [] },
+    { "title": "Paint or replace upstairs bathroom vanity", "area": "home", "effort_minutes": 600, "next_step": "Research vanity options or purchase paint", "subtasks": [] },
+    { "title": "Install ceiling fans", "area": "home", "effort_minutes": 300, "next_step": "Purchase fans and schedule installation day", "subtasks": [] },
+    { "title": "Set up auto sprinkler system", "area": "home", "effort_minutes": 480, "next_step": "Research smart sprinkler systems compatible with the setup", "subtasks": [] },
+    { "title": "Refurbish grill", "area": "home", "effort_minutes": 210, "next_step": "Order replacement parts and cleaning supplies", "subtasks": [] },
+    { "title": "Refurbish nightstand (could sell for $300–500)", "area": "home", "effort_minutes": 540, "next_step": "Sand surface and select stain/paint color", "subtasks": [] },
+    { "title": "Fix propeller battery", "area": "home", "effort_minutes": 150, "next_step": "File down connections and hook up to car to test", "subtasks": [] },
+    { "title": "Subaru repairs", "area": "home", "effort_minutes": 180, "next_step": "Check rim crack fix at AlloyWheels (Ogden/Riverdale)", "subtasks": ["Flat tire fixed — rim cracked, check AlloyWheels", "Right fog light — bulbs ordered, check on order"] },
+    { "title": "Lexus repairs", "area": "home", "effort_minutes": 180, "next_step": "Fix headlight harness first, then high beam and fog lights", "subtasks": ["Headlights moved", "High beam out", "Fog lights — fix harness first"] },
+    { "title": "Sonja cocktail menu birthday gift", "area": "creative", "effort_minutes": 150, "next_step": "Complete design and send to printer", "subtasks": [] },
+    { "title": "Paint shipping container mural", "area": "creative", "effort_minutes": 480, "next_step": "Sketch mural concept", "subtasks": [] },
+    { "title": "Rebuild Travelfire platform with AI (like nomads.com)", "area": "career", "effort_minutes": 4800, "next_step": "Outline core features and pick stack", "subtasks": [] },
+    { "title": "Dynamic-UI shopping agent site (e.g. best pickleball shoes, likes + tiles)", "area": "career", "effort_minutes": 2400, "next_step": "Define MVP feature list", "subtasks": [] },
+    { "title": "Create important documents & information folder", "area": "family", "effort_minutes": 150, "next_step": "Gather all critical documents in one location", "subtasks": [] },
+    { "title": "Sort pictures", "area": "family", "effort_minutes": 300, "next_step": "Create folder structure by year/event", "subtasks": [] },
+    { "title": "Sort through memory cards", "area": "family", "effort_minutes": 210, "next_step": "Back up all content to cloud/hard drive first", "subtasks": [] },
+    { "title": "Sort and upload floppy disks", "area": "family", "effort_minutes": 150, "next_step": "Obtain USB floppy drive reader", "subtasks": [] },
+    { "title": "Sort through Schuette folder", "area": "family", "effort_minutes": 150, "next_step": "Create keep / scan / shred piles", "subtasks": [] },
+    { "title": "Nova passport application", "area": "family", "effort_minutes": 90, "next_step": "Gather required documents and photos, schedule appointment", "subtasks": [] },
+    { "title": "Nova German citizenship application", "area": "family", "effort_minutes": 150, "next_step": "Research requirements and gather documentation", "subtasks": [] }
+  ],
+
+  "tasks": [
+    { "title": "Finish uploading expenses on TripSource app", "area": "career", "effort_minutes": 30 },
+    { "title": "Pay credit cards after mortgages and getting paid", "area": "money", "effort_minutes": 20 },
+    { "title": "Pause My529 contributions and Ally temporarily", "area": "money", "effort_minutes": 20 },
+    { "title": "Check and clean gutters", "area": "home", "effort_minutes": 90 },
+    { "title": "Watch MrFourToEight video", "area": "growth", "effort_minutes": 30 },
+    { "title": "Follow up Manhattan Beach Westdrift hotel", "area": "career", "effort_minutes": 15 },
+    { "title": "Call SLC utility company about water usage and fix", "area": "home", "effort_minutes": 20 },
+    { "title": "Get free AI skills from anthropic.skillsjar.com", "area": "growth", "effort_minutes": 60 },
+    { "title": "Get Travelfire Instagram account and password back", "area": "career", "effort_minutes": 30 },
+    { "title": "Get term life insurance — 20 yr, $1M (Markus & Sarah)", "area": "family", "effort_minutes": 60 },
+    { "title": "Check if Sarah has latest car insurance cards", "area": "family", "effort_minutes": 10 },
+    { "title": "Open Trump account for kids", "area": "money", "effort_minutes": 30 },
+    { "title": "Send Sam tax email", "area": "money", "effort_minutes": 15 },
+    { "title": "Find old pictures from 2015–2016 on iCloud website", "area": "family", "effort_minutes": 45 },
+    { "title": "Transfer Sarah money from MACU to Ally", "area": "money", "effort_minutes": 15 },
+    { "title": "Finish office blinds", "area": "home", "effort_minutes": 60 },
+    { "title": "Reply to Kuempel on Instagram", "area": "career", "effort_minutes": 10 },
+    { "title": "Fix neon PBR light + gold corner light at Ogden shop", "area": "home", "effort_minutes": 90 },
+    { "title": "Reply to real estate agent on Instagram", "area": "money", "effort_minutes": 10 },
+    { "title": "Look into Google AI classes", "area": "growth", "effort_minutes": 45 },
+    { "title": "100k in 12 months — 20 answers exercise", "area": "career", "effort_minutes": 60 },
+    { "title": "Turn hot tub into cold plunge", "area": "health", "effort_minutes": 180 },
+    { "title": "New garbage can", "area": "home", "effort_minutes": 30 },
+    { "title": "New mailbox", "area": "home", "effort_minutes": 60 },
+    { "title": "Look into Ozark AI & invest", "area": "money", "effort_minutes": 45 },
+    { "title": "Research Polkadot, Cardano, Avalanche", "area": "money", "effort_minutes": 60 },
+    { "title": "Look into Orb trading strategy", "area": "money", "effort_minutes": 45 },
+    { "title": "Hang up Nova room blinds", "area": "home", "effort_minutes": 45 },
+    { "title": "Hang up Nova room wallpaper", "area": "home", "effort_minutes": 120 },
+    { "title": "Get blinds or curtains for master bedroom", "area": "home", "effort_minutes": 60 },
+    { "title": "Get blinds or curtains for living room", "area": "home", "effort_minutes": 60 },
+    { "title": "Take out e-bike battery and move bike to shed", "area": "home", "effort_minutes": 20 },
+    { "title": "Back up old MacBook to hard drive", "area": "home", "effort_minutes": 60 },
+    { "title": "Downgrade Coinbase to basic", "area": "money", "effort_minutes": 10 },
+    { "title": "Start radon test", "area": "home", "effort_minutes": 30 },
+    { "title": "Call Alex Bentley back", "area": "career", "effort_minutes": 15 },
+    { "title": "Sand & paint kids' dresser", "area": "home", "effort_minutes": 240 },
+    { "title": "Shower/bath handles + head", "area": "home", "effort_minutes": 90 },
+    { "title": "Get paint sprayer out and working", "area": "home", "effort_minutes": 60 },
+    { "title": "Book trip with free Delta flight vacation", "area": "family", "effort_minutes": 60 },
+    { "title": "Organize storage shed", "area": "home", "effort_minutes": 120 },
+    { "title": "Heat cables on roof before winter", "area": "home", "effort_minutes": 120 },
+    { "title": "Get public water records from Weber County (24th Street)", "area": "home", "effort_minutes": 45 },
+    { "title": "Roman basement room — move dartboard to garage", "area": "home", "effort_minutes": 30 },
+    { "title": "Basement garage door seal", "area": "home", "effort_minutes": 45 },
+    { "title": "Kitchen patio / front door seal", "area": "home", "effort_minutes": 45 },
+    { "title": "Get new Ruckus ring (ChatGPT then Amazon)", "area": "home", "effort_minutes": 20 },
+    { "title": "Plant fruit trees on north side of property", "area": "home", "effort_minutes": 180 },
+    { "title": "Cancel United Chase card", "area": "money", "effort_minutes": 15 },
+    { "title": "Cancel Chase Sapphire Preferred card", "area": "money", "effort_minutes": 15 },
+    { "title": "Transfer Health Equity funds to P&A Admin Skechers HSA", "area": "money", "effort_minutes": 30 },
+    { "title": "Nova $500 birthday", "area": "family", "effort_minutes": 20 },
+    { "title": "Set up biweekly mortgage payments for 1806 Sir James Way", "area": "money", "effort_minutes": 30 },
+    { "title": "Research stocks watchlist: MSR, ASMR, SERV, NU, ISMR, RGTI, QBTS, CHAC", "area": "money", "effort_minutes": 60 },
+    { "title": "Transfer Sarah MACU to Ally for 2025 Roth IRA contributions", "area": "money", "effort_minutes": 20 },
+    { "title": "Transfer ATT account into my name", "area": "family", "effort_minutes": 30, "next_step": "Call ATT customer service with account details ready" },
+    { "title": "Buy Wisconsin flights", "area": "family", "effort_minutes": 30, "urgency": 5 },
+    { "title": "Buy 14,000 BTU AC unit", "area": "home", "effort_minutes": 30, "urgency": 5 },
+    { "title": "Charge RC cars", "area": "home", "effort_minutes": 10 },
+    { "title": "Write down the 5 things I need to do every day to change in 2026", "area": "growth", "effort_minutes": 30 },
+    { "title": "Review and order lumber plans from Mitch for patio chicken run", "area": "home", "effort_minutes": 60, "next_step": "Text Mitch to confirm lumber list" },
+    { "title": "Take Subaru cracked rim to shop in Ogden", "area": "home", "effort_minutes": 60, "next_step": "Confirm AlloyWheels hours and drop off" },
+    { "title": "Clean storage room", "area": "home", "effort_minutes": 90 },
+    { "title": "Get mower transmission belt", "area": "home", "effort_minutes": 30 },
+    { "title": "Update Personal Capital dashboard", "area": "money", "effort_minutes": 30 },
+    { "title": "Drop off return at FedEx in North Ogden", "area": "home", "effort_minutes": 20 },
+    { "title": "Go through emails", "area": "career", "effort_minutes": 45 },
+    { "title": "Book Sunday tee time for Triptow at Wolf Creek", "area": "family", "effort_minutes": 15 },
+    { "title": "Buy 10 bags of gravel for backyard pond and creek", "area": "home", "effort_minutes": 60 },
+    { "title": "Fix Stacyc flat tire", "area": "family", "effort_minutes": 30 },
+    { "title": "Pick up Boomstik paddle and file Selkirk claim", "area": "health", "effort_minutes": 30 },
+    { "title": "Follow up FB Marketplace for garden topsoil delivery", "area": "home", "effort_minutes": 15 }
+  ],
+
+  "vision_2030": {
+    "_note": "Long-horizon projects; keep in a 'someday / 5-year' lane, not the daily queue.",
+    "items": [
+      { "title": "Estate planning with Nycz", "area": "family" },
+      { "title": "Live in Europe for one year", "area": "family" },
+      { "title": "International trip (Costa Rica?)", "area": "family" },
+      { "title": "Refinance Liberty House", "area": "money" },
+      { "title": "Simplify finances", "area": "money", "subtasks": ["Combine accounts", "Close unused accounts", "Cancel unused credit cards"] },
+      { "title": "Pay off Liberty House", "area": "money" },
+      { "title": "Set up HELOC", "area": "money" },
+      { "title": "Retire from job", "area": "career" },
+      { "title": "Acquire another property", "area": "money" },
+      { "title": "Build BASE CAMP / Fantasy Factory / Woodward", "area": "career", "notes": "Custom complex via @the_barndominium_company. Private or public. 2 indoor pickleball courts, full basketball/volleyball court, skatepark, trampoline + foam pits, rock climbing area, fitness gym." }
+    ]
+  },
+
+  "values": {
+    "_note": "Lifestyle balance targets, not tasks. Display in /areas; could power gentle habit nudges. Bold items were the owner's emphasized priorities.",
+    "do_more": ["Exercising", "Cooking", "Learning", "Teaching", "Playing", "Reading books", "Listening to podcasts", "Pickleball", "Sex", "Producing", "Stretching", "Getting 8 hours of sleep", "Home improvement projects", "Pursuing business ideas", "Saving and investing", "Making music", "Flying drone", "Editing videos", "Painting and art", "Date nights", "Snowboarding, biking, skating"],
+    "do_less": ["Video games", "Screen time", "Social media", "Junk food", "Sugar", "Eating out", "Complaining", "Staying up late", "Spending"]
+  },
+
+  "watchlist_movies": ["The Tree of Life", "Arrival", "A Serious Man", "Another Round", "Vivarium", "25th Hour", "Coherence", "Jury Duty"],
+
+  "resources": [
+    { "label": "Liberty House Inspection", "url": "https://app.notion.com/p/Liberty-House-Inspection-5188ee6ac8ef414b85f7a2e8e3dbb573" },
+    { "label": "Business Ideas", "url": "https://app.notion.com/p/Business-Ideas-4af10a6071684fa79d7ce63f63b16b9b" },
+    { "label": "Bucket List Ideas", "url": "https://app.notion.com/p/Bucket-List-Ideas-8ab447bd46304f309b2c13950d1d5b22" },
+    { "label": "Crypto", "url": "https://app.notion.com/p/Crypto-cd2eb1b35742420696178bcf8550e708" },
+    { "label": "Reads", "url": "https://app.notion.com/p/Reads-1a90c34cf4b54c0a951bdb754f02fd64" },
+    { "label": "Books", "url": "https://app.notion.com/p/Books-0ed8e01f1831454a8c1335386572c392" },
+    { "label": "Affirmations & Mindset", "url": "https://app.notion.com/p/Affirmations-Mindset-acf7b5d7572747479fb9ca480a53a4e1" },
+    { "label": "WinWire", "url": "https://app.notion.com/p/WinWIre-177b1df6ec61804c9ae2c8315e102422" }
+  ]
+}
