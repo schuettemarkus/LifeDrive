@@ -44,7 +44,7 @@ export async function POST(req: Request) {
       .select("*")
       .eq("id", item_id)
       .eq("household_id", householdId)
-      .maybeSingle();
+      .maybeSingle<import("@/types/database").Item>();
     if (error) throw error;
     if (!item) return NextResponse.json({ error: "not found" }, { status: 404 });
     if (item.type !== "project")
@@ -63,7 +63,8 @@ export async function POST(req: Request) {
       ],
     });
 
-    const parsed = decomposedSchema.parse(extractJson(joinTextBlocks(resp.content)));
+    type Decomposed = z.infer<typeof decomposedSchema>;
+    const parsed: Decomposed = decomposedSchema.parse(extractJson(joinTextBlocks(resp.content)));
 
     if (!commit) {
       return NextResponse.json({ ...parsed, item_id });
@@ -72,7 +73,7 @@ export async function POST(req: Request) {
     // Insert children. Clear is_next_action on existing siblings first.
     await supabase.from("items").update({ is_next_action: false }).eq("parent_id", item_id);
 
-    const rows = parsed.steps.map((s, i) => ({
+    const rows = parsed.steps.map((s: Decomposed["steps"][number], i: number) => ({
       household_id: householdId,
       parent_id: item_id,
       created_by: user.id,

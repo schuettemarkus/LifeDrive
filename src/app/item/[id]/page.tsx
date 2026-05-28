@@ -30,7 +30,7 @@ export default async function ItemPage({ params }: { params: Promise<{ id: strin
   }
 
   const supabase = await supabaseServer();
-  const { data: item } = await supabase.from("items").select("*").eq("id", id).maybeSingle();
+  const { data: item } = await supabase.from("items").select("*").eq("id", id).maybeSingle<Item>();
   if (!item) {
     return (
       <main>
