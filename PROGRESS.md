@@ -8,7 +8,7 @@ Tracking the milestones from the build prompt. Commit after each.
 | 2 | Supabase schema, RLS, auth, households + invites | ✅ shipped |
 | 3 | Items CRUD + Kanban with drag/persist + realtime | ✅ shipped |
 | 4 | Idempotent seed script (`life-drive-seed-data.json`) | ✅ shipped |
-| 5 | Capture + Anthropic AI triage route | ⏳ |
+| 5 | Capture + Anthropic AI triage route | ✅ shipped |
 | 6 | Prioritization engine → wire "Today's 3" to real data | ⏳ |
 | 7 | Project decomposition / next actions (Anthropic) | ⏳ |
 | 8 | Google Calendar OAuth + read (day/week views) | ⏳ |

@@ -1,4 +1,5 @@
 import { supabaseServer, supabaseService } from "@/lib/supabase/server";
+import type { Household, Invite } from "@/types/database";
 
 /**
  * Return the authenticated user's household id, or null.
@@ -35,7 +36,7 @@ export async function requireCurrentUserAndHousehold() {
  * All writes happen with service role to keep RLS sane (we're the ones
  * inserting the membership row that RLS keys off of).
  */
-export async function createHousehold(name: string) {
+export async function createHousehold(name: string): Promise<Household> {
   const supabase = await supabaseServer();
   const { data: { user }, error } = await supabase.auth.getUser();
   if (error || !user) throw new Error("Not signed in");
@@ -45,7 +46,7 @@ export async function createHousehold(name: string) {
     .from("households")
     .insert({ name, created_by: user.id })
     .select("*")
-    .single();
+    .single<Household>();
   if (hErr || !household) throw hErr ?? new Error("Failed to create household");
 
   await admin.from("household_members").insert({
@@ -68,7 +69,7 @@ function randomToken(len = 24) {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-export async function createInvite(householdId: string, email: string) {
+export async function createInvite(householdId: string, email: string): Promise<Invite> {
   const supabase = await supabaseServer();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not signed in");
@@ -84,8 +85,8 @@ export async function createInvite(householdId: string, email: string) {
       invited_by: user.id,
     })
     .select("*")
-    .single();
-  if (error) throw error;
+    .single<Invite>();
+  if (error || !data) throw error ?? new Error("Failed to create invite");
   return data;
 }
 
