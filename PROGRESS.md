@@ -13,7 +13,7 @@ Tracking the milestones from the build prompt. Commit after each.
 | 7 | Project decomposition / next actions (Anthropic) | ✅ shipped |
 | 8 | Google Calendar OAuth + read (day/week views) | ✅ shipped |
 | 9 | Auto-scheduling + write-back | ✅ shipped |
-| 10 | Balance wheel + principles + workouts surfaces | ⏳ |
+| 10 | Balance wheel + principles + workouts surfaces | ✅ shipped |
 | 11 | Weekly review + delegation polish + PWA hardening | ⏳ |
 
 ## Milestone 1 — what shipped

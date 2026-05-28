@@ -117,6 +117,14 @@ export default async function DailyDrivePage() {
   const principle = principles?.[0];
   const workout = workouts?.[0];
 
+  if (principle) {
+    // Fire-and-forget: stamp the rotation so we don't repeat tomorrow.
+    void supabase
+      .from("principles")
+      .update({ last_shown_at: new Date().toISOString() })
+      .eq("id", principle.id);
+  }
+
   return (
     <main className="flex flex-col">
       <DailyDriveHeader
