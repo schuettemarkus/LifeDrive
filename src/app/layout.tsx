@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { TabBar } from "@/components/glass/TabBar";
+import { QueryProvider } from "@/lib/query-provider";
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
@@ -41,8 +42,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="dark">
       <body className="min-h-screen">
-        <div className="mx-auto max-w-xl pb-24">{children}</div>
-        <TabBar />
+        <QueryProvider>
+          <div className="mx-auto max-w-xl pb-24">{children}</div>
+          <TabBar />
+        </QueryProvider>
       </body>
     </html>
   );

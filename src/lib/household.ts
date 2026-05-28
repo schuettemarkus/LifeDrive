@@ -5,15 +5,20 @@ import { supabaseServer, supabaseService } from "@/lib/supabase/server";
  * Reads from the user's profile row (single source of truth).
  */
 export async function getCurrentHouseholdId(): Promise<string | null> {
-  const supabase = await supabaseServer();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
-  const { data } = await supabase
-    .from("profiles")
-    .select("household_id")
-    .eq("id", user.id)
-    .maybeSingle();
-  return data?.household_id ?? null;
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return null;
+  try {
+    const supabase = await supabaseServer();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+    const { data } = await supabase
+      .from("profiles")
+      .select("household_id")
+      .eq("id", user.id)
+      .maybeSingle();
+    return data?.household_id ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export async function requireCurrentUserAndHousehold() {

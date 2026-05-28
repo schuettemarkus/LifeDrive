@@ -1,27 +1,95 @@
+import Link from "next/link";
 import { PageHeader } from "@/components/glass/PageHeader";
 import { GlassCard } from "@/components/glass/GlassCard";
 import { AreaPill } from "@/components/glass/AreaPill";
+import { supabaseServer } from "@/lib/supabase/server";
+import { getCurrentHouseholdId } from "@/lib/household";
+import { formatMinutes } from "@/lib/utils";
+import type { Item } from "@/types/database";
+
+export const dynamic = "force-dynamic";
 
 export default async function ItemPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const householdId = await getCurrentHouseholdId();
+  if (!householdId) {
+    return (
+      <main>
+        <PageHeader eyebrow="item" title="Sign in" />
+        <section className="px-4 pt-5 pb-32">
+          <GlassCard inset>
+            <p className="text-sm text-white/75">Connect a household to view items.</p>
+            <Link href="/auth/sign-in" className="mt-3 inline-block rounded-pill bg-accent-gradient px-4 py-2 text-sm font-semibold text-white shadow-glow">
+              sign in
+            </Link>
+          </GlassCard>
+        </section>
+      </main>
+    );
+  }
+
+  const supabase = await supabaseServer();
+  const { data: item } = await supabase.from("items").select("*").eq("id", id).maybeSingle();
+  if (!item) {
+    return (
+      <main>
+        <PageHeader eyebrow="item" title="Not found" description="That item doesn't exist or isn't in your household." />
+      </main>
+    );
+  }
+  const { data: children } = await supabase
+    .from("items")
+    .select("*")
+    .eq("parent_id", id)
+    .order("position", { ascending: true });
+
+  const typed = item as Item;
+  const subtasks = (children ?? []) as Item[];
+
   return (
     <main>
-      <PageHeader eyebrow="item" title={`#${id}`} />
-      <section className="px-4 pt-5 pb-32 space-y-3">
-        <GlassCard inset>
-          <AreaPill area="home" />
-          <h2 className="mt-3 text-xl font-semibold text-white">Item detail</h2>
-          <p className="mt-1 text-sm text-white/55">
-            Subtasks, AI breakdown, scheduling, delegation, and history live here once wired to Supabase.
-          </p>
+      <PageHeader eyebrow={typed.type} title={typed.title} description={typed.notes ?? undefined} />
+      <section className="px-4 pt-5 space-y-3 pb-32">
+        <GlassCard inset className="flex items-center justify-between">
+          <AreaPill area={typed.life_area} />
+          <span className="text-xs text-white/55">{formatMinutes(typed.effort_minutes)}</span>
         </GlassCard>
-        <GlassCard inset>
-          <p className="text-[10px] uppercase tracking-[0.18em] text-white/40">break this down</p>
-          <button className="mt-2 rounded-pill bg-accent-gradient px-4 py-2 text-sm font-semibold text-white shadow-glow">
-            ask the AI
-          </button>
-        </GlassCard>
+        {typed.priority_reason && (
+          <GlassCard inset variant="subtle">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-white/40">ranked because</p>
+            <p className="mt-1 text-sm text-white/80">{typed.priority_reason}</p>
+          </GlassCard>
+        )}
+        {typed.type === "project" && (
+          <GlassCard inset>
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] uppercase tracking-[0.18em] text-white/40">subtasks</p>
+              <BreakdownButton itemId={typed.id} />
+            </div>
+            <ul className="mt-3 space-y-2">
+              {subtasks.length === 0 && (
+                <li className="text-sm text-white/55">No subtasks yet. Ask the AI to break this down.</li>
+              )}
+              {subtasks.map((c) => (
+                <li key={c.id} className="flex items-start gap-2 text-[14px] text-white/85">
+                  <span className={`mt-1 inline-block h-2 w-2 shrink-0 rounded-full ${c.is_next_action ? "bg-accent-cyan" : "bg-white/30"}`} />
+                  <span className="flex-1">{c.title}</span>
+                  <span className="text-[11px] text-white/45">{formatMinutes(c.effort_minutes)}</span>
+                </li>
+              ))}
+            </ul>
+          </GlassCard>
+        )}
       </section>
     </main>
+  );
+}
+
+function BreakdownButton({ itemId }: { itemId: string }) {
+  // Client-only behavior added in milestone 7. For now this is a label.
+  return (
+    <span className="rounded-pill border border-white/10 bg-white/5 px-2 py-1 text-[10px] uppercase tracking-wider text-white/55">
+      ai breakdown · soon
+    </span>
   );
 }
