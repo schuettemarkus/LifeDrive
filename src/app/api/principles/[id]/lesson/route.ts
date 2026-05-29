@@ -35,8 +35,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     const model = modelFor("reason");
     const resp = await client.messages.create({
       model,
-      max_tokens: 600,
-      system: `You are a personal mentor explaining a life principle. The user has this principle on their daily dashboard. Write a tight micro-lesson (110-160 words, two short paragraphs). The first paragraph is a vivid real-world scenario where this principle would change someone's choice. The second is one concrete action the reader can do today to live the principle — verb-led, specific, finishable in under an hour. Plain prose. No headings, no bullets, no markdown, no quotation marks around the principle.`,
+      max_tokens: 400,
+      system: `You write tight summaries of life principles for a personal dashboard. Given a principle, produce a calm 2-3 sentence summary (60-100 words) that explains what it actually means and why it matters. Plain prose, second person ("you") when natural. No headings, no bullets, no markdown, no quotation marks around the principle, no calls to action, no exhortations to "today". Just a clear, grounded summary the reader can absorb in 15 seconds.`,
       messages: [
         {
           role: "user",

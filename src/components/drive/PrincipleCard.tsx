@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Quote, ChevronDown, Sparkles, RefreshCw } from "lucide-react";
+import { Quote, ChevronDown } from "lucide-react";
 import { GlassCard } from "@/components/glass/GlassCard";
 import { SPRING_SOFT } from "@/lib/design";
 
@@ -20,24 +20,18 @@ export function PrincipleCard({
   const [open, setOpen] = useState(false);
   const [lesson, setLesson] = useState<string | null>(initialLesson ?? null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const interactive = Boolean(id);
 
-  async function ensureLesson(force = false) {
+  async function ensureLesson() {
     if (!id) return;
-    if (lesson && !force) return;
+    if (lesson) return;
     setLoading(true);
-    setError(null);
     try {
-      if (force) {
-        await fetch(`/api/principles/${id}/lesson`, { method: "DELETE" });
-      }
       const res = await fetch(`/api/principles/${id}/lesson`);
       const j = await res.json();
-      if (!res.ok) throw new Error(j.error ?? "Failed");
-      setLesson(j.lesson);
-    } catch (e: any) {
-      setError(e.message);
+      if (res.ok) setLesson(j.lesson);
+    } catch {
+      /* silently — the principle itself is still visible */
     } finally {
       setLoading(false);
     }
@@ -45,7 +39,7 @@ export function PrincipleCard({
 
   function toggle() {
     if (!interactive) return;
-    if (!open) void ensureLesson(false);
+    if (!open) void ensureLesson();
     setOpen((v) => !v);
   }
 
@@ -89,7 +83,7 @@ export function PrincipleCard({
           <AnimatePresence initial={false}>
             {open && (
               <motion.div
-                key="lesson"
+                key="summary"
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
@@ -98,30 +92,11 @@ export function PrincipleCard({
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="mt-4 border-t border-white/5 pt-4">
-                  <div className="mb-2 flex items-center justify-between">
-                    <p className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-accent-cyan">
-                      <Sparkles className="h-3 w-3" />
-                      micro-lesson
-                    </p>
-                    {lesson && (
-                      <button
-                        onClick={() => void ensureLesson(true)}
-                        disabled={loading}
-                        className="flex items-center gap-1 rounded-pill border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-white/60"
-                        aria-label="Regenerate lesson"
-                      >
-                        <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
-                        new take
-                      </button>
-                    )}
-                  </div>
-
                   {loading && !lesson && (
                     <p className="animate-pulse text-[13px] leading-relaxed text-white/55">
-                      writing a real-world take on this…
+                      summarizing the principle…
                     </p>
                   )}
-                  {error && <p className="text-[12px] text-red-300">{error}</p>}
                   {lesson && (
                     <p className="whitespace-pre-line text-[13.5px] leading-relaxed text-white/80">
                       {lesson}

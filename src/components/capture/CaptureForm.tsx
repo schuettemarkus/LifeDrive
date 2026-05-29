@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mic, Sparkles, Check, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -38,28 +38,30 @@ export function CaptureForm({ initial }: { initial?: string }) {
   const [error, setError] = useState<string | null>(null);
   const [listening, setListening] = useState(false);
   const recRef = useRef<any>(null);
+  const rawRef = useRef(raw);
+  rawRef.current = raw;
 
-  async function triage() {
-    if (!raw.trim()) return;
+  const triage = useCallback(async (textOverride?: string) => {
+    const text = (textOverride ?? rawRef.current).trim();
+    if (!text) return;
     setBusy(true);
     setError(null);
     try {
       const res = await fetch("/api/triage", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ rawText: raw }),
+        body: JSON.stringify({ rawText: text }),
       });
       const j = await res.json();
-      if (!res.ok) throw new Error(j.error ?? "Triage failed");
+      if (!res.ok) throw new Error(j.error ?? "Sort failed");
       const sorted = (j.items ?? []) as TriagedItem[];
-      // Default high-urgency items into this_week, others into inbox.
       setItems(sorted.map((it) => ({ ...it, status: it.urgency >= 4 ? "this_week" : "inbox" })));
     } catch (e: any) {
       setError(e.message);
     } finally {
       setBusy(false);
     }
-  }
+  }, []);
 
   function setLane(idx: number, lane: TriagedItem["status"]) {
     setItems((prev) =>
@@ -98,21 +100,30 @@ export function CaptureForm({ initial }: { initial?: string }) {
     }
     if (listening) {
       recRef.current?.stop();
-      setListening(false);
+      // onend will auto-fire triage if we got transcript.
       return;
     }
     const r = new SR();
     r.continuous = true;
     r.interimResults = false;
     r.lang = "en-US";
+    let pickedUpSomething = false;
     r.onresult = (e: any) => {
       let chunk = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
         chunk += e.results[i][0].transcript;
       }
+      if (chunk.trim()) pickedUpSomething = true;
       setRaw((prev) => (prev ? `${prev}\n${chunk}`.trim() : chunk));
     };
-    r.onend = () => setListening(false);
+    r.onend = () => {
+      setListening(false);
+      if (pickedUpSomething && rawRef.current.trim()) {
+        // Auto-submit so voice capture is "speak → done".
+        void triage(rawRef.current);
+      }
+    };
+    r.onerror = () => setListening(false);
     r.start();
     recRef.current = r;
     setListening(true);
@@ -147,7 +158,7 @@ export function CaptureForm({ initial }: { initial?: string }) {
                   onClick={reset}
                   className="rounded-pill border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80"
                 >
-                  drop more
+                  add more
                 </button>
                 <button
                   onClick={() => router.push("/")}
@@ -229,7 +240,7 @@ export function CaptureForm({ initial }: { initial?: string }) {
               <textarea
                 value={raw}
                 onChange={(e) => setRaw(e.target.value)}
-                placeholder="One thing per line. Anything. The AI sorts."
+                placeholder="One thing per line. Anything. We'll sort it for you."
                 rows={10}
                 className="w-full resize-none bg-transparent text-[15px] leading-relaxed text-white placeholder:text-white/35 focus:outline-none"
               />
@@ -241,15 +252,15 @@ export function CaptureForm({ initial }: { initial?: string }) {
                 className={`flex items-center gap-2 rounded-pill border border-white/10 px-3 py-2 text-sm ${listening ? "bg-rose-500/20 text-rose-200" : "bg-white/5 text-white/80"}`}
               >
                 <Mic className="h-4 w-4" />
-                {listening ? "listening" : "voice"}
+                {listening ? "tap to stop & sort" : "voice"}
               </button>
               <button
                 disabled={busy || !raw.trim()}
-                onClick={triage}
+                onClick={() => triage()}
                 className="flex items-center gap-2 rounded-pill bg-accent-gradient px-5 py-2 text-sm font-semibold text-white shadow-glow disabled:opacity-60"
               >
                 <Sparkles className="h-4 w-4" />
-                {busy ? "triaging…" : "triage"}
+                {busy ? "sorting…" : "sort it"}
               </button>
             </div>
           </motion.div>

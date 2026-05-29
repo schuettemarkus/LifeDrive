@@ -203,6 +203,34 @@ export type GoogleAccount = {
   updated_at: string;
 };
 
+export type DailyFocus = {
+  user_id: string;
+  household_id: string;
+  day: string;
+  item_ids: string[];
+  created_at: string;
+};
+
+export type MovementKind =
+  | "workout"
+  | "pickleball"
+  | "stretch"
+  | "walk"
+  | "yard_work"
+  | "bike"
+  | "other";
+
+export type MovementLog = {
+  id: string;
+  user_id: string;
+  day: string;
+  kind: MovementKind;
+  custom_label: string | null;
+  notes: string | null;
+  duration_min: number | null;
+  created_at: string;
+};
+
 type TableShape<Row> = {
   Row: Row & Indexed;
   Insert: Partial<Row> & Indexed;
@@ -228,6 +256,8 @@ export type Database = {
       daily_activity: TableShape<DailyActivity>;
       ai_usage: TableShape<AiUsage>;
       push_subscriptions: TableShape<PushSubscription>;
+      daily_focus: TableShape<DailyFocus>;
+      movement_logs: TableShape<MovementLog>;
     };
     Views: { [_ in never]: never };
     Functions: {

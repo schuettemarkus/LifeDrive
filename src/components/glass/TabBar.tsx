@@ -3,16 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Home, Inbox, KanbanSquare, Calendar, Sparkles } from "lucide-react";
+import { Rocket, Plus, ListChecks, Calendar, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SPRING } from "@/lib/design";
 
-type Tab = { href: string; label: string; icon: typeof Home; primary?: boolean };
+type Tab = { href: string; label: string; icon: typeof Rocket; primary?: boolean };
 
 const TABS: Tab[] = [
-  { href: "/", label: "Drive", icon: Home },
-  { href: "/boards", label: "Boards", icon: KanbanSquare },
-  { href: "/capture", label: "Capture", icon: Inbox, primary: true },
+  { href: "/", label: "Drive", icon: Rocket },
+  { href: "/boards", label: "Boards", icon: ListChecks },
+  { href: "/capture", label: "Capture", icon: Plus, primary: true },
   { href: "/calendar", label: "Calendar", icon: Calendar },
   { href: "/review", label: "Review", icon: Sparkles },
 ];
@@ -35,10 +35,11 @@ export function TabBar() {
               <Link
                 key={t.href}
                 href={t.href}
+                prefetch
                 className="no-tap-highlight relative -mt-7 grid h-14 w-14 place-items-center rounded-full bg-accent-gradient shadow-glow"
                 aria-label={t.label}
               >
-                <Icon className="h-6 w-6 text-white" />
+                <Icon className="h-7 w-7 text-white" strokeWidth={2.5} />
               </Link>
             );
           }
@@ -46,6 +47,7 @@ export function TabBar() {
             <Link
               key={t.href}
               href={t.href}
+              prefetch
               className="no-tap-highlight relative flex flex-1 flex-col items-center gap-0.5 py-1.5"
               aria-current={active ? "page" : undefined}
             >

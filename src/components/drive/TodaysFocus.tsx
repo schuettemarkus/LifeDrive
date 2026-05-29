@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Sparkles } from "lucide-react";
+import { Sparkles, CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { GlassCard } from "@/components/glass/GlassCard";
 import { AreaPill } from "@/components/glass/AreaPill";
@@ -21,7 +21,14 @@ function timeRange(start?: string, end?: string) {
   return `${fmt(start)} → ${fmt(end)}`;
 }
 
-export function TodaysFocus({ items }: { items: MockItem[] }) {
+export function TodaysFocus({
+  items,
+  totalLocked,
+}: {
+  items: MockItem[];
+  /** how many slots were locked in for today (3 once seeded). When items.length < totalLocked some are completed. */
+  totalLocked?: number;
+}) {
   const router = useRouter();
   const [first, ...rest] = items;
   const [celebrate, setCelebrate] = useState(0);
@@ -31,8 +38,6 @@ export function TodaysFocus({ items }: { items: MockItem[] }) {
     try {
       await fetch(`/api/items/${id}/complete`, { method: "POST" });
       setCelebrate((n) => n + 1);
-      // Fire-and-forget re-rank so the queue refreshes its ordering after this win.
-      void fetch("/api/prioritize?persist=true", { method: "GET" });
     } catch {
       /* row already vanished optimistically; surface refresh will reconcile */
     } finally {
@@ -63,12 +68,39 @@ export function TodaysFocus({ items }: { items: MockItem[] }) {
     }
   }
 
+  const allCleared = (totalLocked ?? 0) > 0 && items.length === 0;
+
   return (
     <section className="px-4">
       <h2 className="mb-2 mt-6 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/40">
         <Sparkles className="h-3.5 w-3.5" />
         today's focus
       </h2>
+
+      {allCleared && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <GlassCard variant="strong" inset glow className="relative overflow-hidden">
+            <div
+              aria-hidden
+              className="absolute -right-12 -top-12 h-44 w-44 rounded-full bg-emerald-400/30 blur-3xl"
+            />
+            <div className="relative grid place-items-center gap-2 py-4 text-center">
+              <CheckCircle2 className="h-9 w-9 text-emerald-300" />
+              <h3 className="text-[20px] font-semibold tracking-tight text-white">
+                Today's three are done.
+              </h3>
+              <p className="max-w-sm text-sm text-white/65">
+                You moved the needle on what mattered. Anything else today is a bonus — rest, breathe,
+                or drop new ideas into Capture.
+              </p>
+            </div>
+          </GlassCard>
+        </motion.div>
+      )}
 
       {first && (
         <HeroCard

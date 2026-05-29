@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { requireCurrentUserAndHousehold } from "@/lib/household";
 import { proposeSchedule } from "@/lib/scheduler";
-import type { FocusWindow, WorkingHours, Profile } from "@/types/database";
+import { getOrLockTodaysFocus } from "@/lib/daily-focus";
+import type { FocusWindow, WorkingHours, Profile, Item } from "@/types/database";
 
 export async function POST(req: Request) {
   try {
@@ -17,9 +18,23 @@ export async function POST(req: Request) {
     const focusWindows: FocusWindow[] = profile?.focus_windows ?? [];
     const working: WorkingHours = profile?.working_hours ?? { start: "06:00", end: "21:00" };
 
+    // Only the locked top-3 daily focus items get auto-scheduled onto the calendar.
+    // No more than 3 events per day get pushed.
+    const allItems = (items ?? []) as Item[];
+    const lockedIds = await getOrLockTodaysFocus({
+      supabase,
+      userId: user.id,
+      householdId,
+      items: allItems,
+      tz: (profile as { timezone?: string } | null)?.timezone ?? null,
+    });
+    const focusOnly = lockedIds
+      .map((id) => allItems.find((i) => i.id === id))
+      .filter((i): i is Item => Boolean(i) && i!.status !== "done");
+
     const proposed = await proposeSchedule({
       userId: user.id,
-      items: (items ?? []) as any,
+      items: focusOnly,
       focusWindows,
       working,
       scope,

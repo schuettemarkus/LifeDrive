@@ -13,9 +13,9 @@ export default async function CapturePage({
   return (
     <main>
       <PageHeader
-        eyebrow="brain dump"
+        eyebrow="add anything"
         title="What's on your mind?"
-        description="Type or dictate everything. The AI sorts, estimates, and parks it where it belongs."
+        description="Type or talk. We'll sort, estimate, and park it where it belongs."
       />
       <CaptureForm initial={initial} />
     </main>

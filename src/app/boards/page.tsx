@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/glass/PageHeader";
 import { GlassCard } from "@/components/glass/GlassCard";
-import { Kanban } from "@/components/boards/Kanban";
+import { TaskList } from "@/components/boards/TaskList";
 import { AreaPill } from "@/components/glass/AreaPill";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getCurrentHouseholdId } from "@/lib/household";
@@ -24,7 +24,7 @@ export default async function BoardsPage({
   if (!householdId) {
     return (
       <main>
-        <PageHeader eyebrow="kanban" title="Boards" />
+        <PageHeader eyebrow="all tasks" title="Boards" />
         <section className="px-4 pt-5 pb-32">
           <GlassCard inset>
             <p className="text-sm text-white/75">
@@ -48,9 +48,9 @@ export default async function BoardsPage({
   return (
     <main>
       <PageHeader
-        eyebrow="kanban"
-        title={area ? `${LIFE_AREAS[area].name} board` : "Boards"}
-        description={area ? "Filtered by area. Drag across the week." : "Drag across the week."}
+        eyebrow="all tasks"
+        title={area ? `${LIFE_AREAS[area].name} tasks` : "Boards"}
+        description={area ? "Filtered by area. Tap a row to edit." : "Everything in one place. Tap to edit."}
       />
 
       <section className="px-4 pt-3">
@@ -81,15 +81,15 @@ export default async function BoardsPage({
         </div>
       </section>
 
-      <section className="overflow-x-auto px-4 pt-4 pb-32">
+      <section className="px-4 pt-4 pb-32">
         {items.length === 0 ? (
-          <GlassCard inset variant="subtle" className="mx-1">
+          <GlassCard inset variant="subtle">
             <p className="text-sm text-white/65">
-              Nothing here yet. {area ? `Try a different area or capture something new.` : `Drop a brain dump on the Capture tab.`}
+              Nothing here yet. {area ? `Try a different area or capture something new.` : `Drop something on the Capture tab.`}
             </p>
           </GlassCard>
         ) : (
-          <Kanban initial={items} />
+          <TaskList initial={items} />
         )}
       </section>
     </main>
