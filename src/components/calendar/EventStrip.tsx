@@ -15,7 +15,7 @@ type RemoteEvent = {
   itemId: string | null;
 };
 
-export function EventStrip() {
+export function EventStrip({ fullDay = false }: { fullDay?: boolean }) {
   const [events, setEvents] = useState<RemoteEvent[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -62,5 +62,5 @@ export function EventStrip() {
     itemId: e.itemId,
   })).filter((b) => b.start && b.end) as (MockBlock & { area?: LifeAreaKey })[];
 
-  return <ScheduleStrip blocks={blocks} />;
+  return <ScheduleStrip blocks={blocks} fullDay={fullDay} />;
 }

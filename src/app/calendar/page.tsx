@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/glass/PageHeader";
 import { ScheduleStrip } from "@/components/drive/ScheduleStrip";
 import { GlassCard } from "@/components/glass/GlassCard";
 import { EventStrip } from "@/components/calendar/EventStrip";
-import { PlanDayButton } from "@/components/calendar/PlanDayButton";
+import { AutoPlanner } from "@/components/calendar/AutoPlanner";
 import { supabaseServer, supabaseService } from "@/lib/supabase/server";
 import { MOCK_BLOCKS } from "@/lib/mock-data";
 
@@ -29,11 +29,12 @@ export default async function CalendarPage() {
       <PageHeader
         eyebrow="calendar"
         title="Today"
-        description="Focus blocks live alongside your real meetings."
+        description="Full day · focus blocks live alongside your real meetings."
       />
-      {connected ? <EventStrip /> : <ScheduleStrip blocks={MOCK_BLOCKS} />}
-      <section className="px-4 pt-5 pb-32 space-y-3">
-        {!connected && (
+      {connected ? <EventStrip fullDay /> : <ScheduleStrip blocks={MOCK_BLOCKS} fullDay />}
+      <AutoPlanner enabled={connected} />
+      {!connected && (
+        <section className="px-4 pt-5 pb-32">
           <GlassCard inset variant="subtle">
             <p className="text-sm text-white/75">
               Google Calendar isn't connected yet — the schedule above is a preview.
@@ -45,16 +46,9 @@ export default async function CalendarPage() {
               connect calendar
             </Link>
           </GlassCard>
-        )}
-        <GlassCard inset className="flex items-center justify-between">
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.18em] text-white/40">auto-schedule</p>
-            <p className="mt-1 font-medium text-white/90">Plan my day</p>
-            <p className="text-xs text-white/50">Fill focus windows with the top of the queue.</p>
-          </div>
-          <PlanDayButton disabled={!connected} />
-        </GlassCard>
-      </section>
+        </section>
+      )}
+      <div className="pb-32" />
     </main>
   );
 }
