@@ -3,6 +3,7 @@ import { DailyDriveHeader } from "@/components/drive/DailyDriveHeader";
 import { TodaysFocus } from "@/components/drive/TodaysFocus";
 import { ScheduleStrip } from "@/components/drive/ScheduleStrip";
 import { PrincipleCard } from "@/components/drive/PrincipleCard";
+import { TodaysHabits } from "@/components/drive/TodaysHabits";
 import { WorkoutCard } from "@/components/drive/WorkoutCard";
 import { GlassCard } from "@/components/glass/GlassCard";
 import { PageHeader } from "@/components/glass/PageHeader";
@@ -95,31 +96,52 @@ export default async function DailyDrivePage() {
     );
   }
 
-  const [{ data: items }, { data: profile }, { data: principles }, { data: workouts }, { data: blocks }] =
-    await Promise.all([
-      supabase.from("items").select("*").eq("household_id", householdId),
-      supabase.from("profiles").select("display_name").eq("id", user!.id).maybeSingle(),
-      supabase
-        .from("principles")
-        .select("*")
-        .eq("household_id", householdId)
-        .eq("active", true)
-        .order("last_shown_at", { ascending: true, nullsFirst: true })
-        .limit(1),
-      supabase
-        .from("workouts")
-        .select("*")
-        .eq("user_id", user!.id)
-        .eq("scheduled_for", new Date().toISOString().slice(0, 10))
-        .limit(1),
-      supabase
-        .from("schedule_blocks")
-        .select("*, items!inner(title, life_area)")
-        .eq("user_id", user!.id)
-        .gte("starts_at", startOfDay().toISOString())
-        .lte("starts_at", new Date(Date.now() + 24 * 3600 * 1000).toISOString())
-        .order("starts_at", { ascending: true }),
-    ]);
+  const todayDow = new Date().getDay();
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const [
+    { data: items },
+    { data: profile },
+    { data: principles },
+    { data: workouts },
+    { data: blocks },
+    { data: habits },
+    { data: habitCompletions },
+  ] = await Promise.all([
+    supabase.from("items").select("*").eq("household_id", householdId),
+    supabase.from("profiles").select("display_name").eq("id", user!.id).maybeSingle(),
+    supabase
+      .from("principles")
+      .select("*")
+      .eq("household_id", householdId)
+      .eq("active", true)
+      .order("last_shown_at", { ascending: true, nullsFirst: true })
+      .limit(1),
+    supabase
+      .from("workouts")
+      .select("*")
+      .eq("user_id", user!.id)
+      .eq("scheduled_for", todayIso)
+      .limit(1),
+    supabase
+      .from("schedule_blocks")
+      .select("*, items!inner(title, life_area)")
+      .eq("user_id", user!.id)
+      .gte("starts_at", startOfDay().toISOString())
+      .lte("starts_at", new Date(Date.now() + 24 * 3600 * 1000).toISOString())
+      .order("starts_at", { ascending: true }),
+    supabase
+      .from("habits")
+      .select("*")
+      .eq("user_id", user!.id)
+      .eq("active", true)
+      .contains("days_of_week", [todayDow])
+      .order("position", { ascending: true }),
+    supabase
+      .from("habit_completions")
+      .select("*")
+      .eq("user_id", user!.id)
+      .eq("completed_on", todayIso),
+  ]);
 
   const allItems = items ?? [];
   const distribution = computeAreaDistribution(allItems as any);
@@ -184,7 +206,12 @@ export default async function DailyDrivePage() {
         signedIn
       />
       {principle && (
-        <PrincipleCard text={principle.text} group={principle.theme ?? "principle"} />
+        <PrincipleCard
+          id={principle.id}
+          text={principle.text}
+          group={principle.theme ?? "principle"}
+          lesson={principle.lesson ?? null}
+        />
       )}
       {focusItems.length > 0 ? (
         <TodaysFocus items={focusItems} />
@@ -193,6 +220,7 @@ export default async function DailyDrivePage() {
           <PageHeader title="Quiet drive" description="Nothing pressing today. Drop a quick capture if you have ideas resting." />
         </section>
       )}
+      <TodaysHabits habits={(habits ?? []) as any} completions={(habitCompletions ?? []) as any} />
       {scheduleBlocks.length > 0 && <ScheduleStrip blocks={scheduleBlocks} density="compact" />}
       {workout && <WorkoutCard name={workout.name} exercises={workout.exercises ?? []} />}
       {!workout && (

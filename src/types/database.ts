@@ -108,6 +108,34 @@ export type Principle = {
   active: boolean;
   last_shown_at: string | null;
   created_at: string;
+  lesson: string | null;
+  lesson_generated_at: string | null;
+};
+
+export type HabitTimeOfDay = "morning" | "midday" | "evening" | "anytime";
+
+export type Habit = {
+  id: string;
+  household_id: string;
+  user_id: string;
+  title: string;
+  notes: string | null;
+  life_area: string | null;
+  days_of_week: number[]; // 0=Sun..6=Sat
+  time_of_day: HabitTimeOfDay;
+  icon: string | null;
+  position: number;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type HabitCompletion = {
+  id: string;
+  habit_id: string;
+  user_id: string;
+  completed_on: string; // YYYY-MM-DD
+  completed_at: string;
 };
 
 export type Workout = {
@@ -159,6 +187,8 @@ export type Database = {
       items: TableShape<Item>;
       schedule_blocks: TableShape<ScheduleBlock>;
       principles: TableShape<Principle>;
+      habits: TableShape<Habit>;
+      habit_completions: TableShape<HabitCompletion>;
       workouts: TableShape<Workout>;
       reviews: TableShape<Review>;
       google_accounts: TableShape<GoogleAccount>;
