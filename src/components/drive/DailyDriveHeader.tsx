@@ -2,60 +2,54 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Flame, Target, Repeat, Dumbbell, Quote } from "lucide-react";
-import { shortDate, timeOfDay } from "@/lib/utils";
+import { Flame, Target, Repeat, Dumbbell } from "lucide-react";
 
 export type TodayCounts = {
   focusTotal: number;
   focusDone: number;
   habitsTotal: number;
   habitsDone: number;
-  hasWorkout: boolean;
-  workoutDone: boolean;
-  hasPrinciple: boolean;
+  movementDone: number;
 };
+
+function fullDate(d = new Date()) {
+  return d.toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+}
 
 export function DailyDriveHeader({
   streak,
   streakActiveToday,
   name,
-  resting,
   signedIn,
   counts,
 }: {
   streak: number;
   streakActiveToday?: boolean;
   name: string;
-  resting: number;
+  resting?: number;
   signedIn?: boolean;
   counts?: TodayCounts;
 }) {
   const initial = (name?.trim()?.[0] ?? "?").toUpperCase();
   return (
     <header className="px-4 pt-6">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <motion.p
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="text-sm text-white/55"
-          >
-            {timeOfDay()}, {name}.
-          </motion.p>
-          <motion.h1
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.05 }}
-            className="mt-1 text-[28px] font-semibold leading-tight tracking-tight text-balance"
-          >
-            {shortDate(new Date())}
-          </motion.h1>
-        </div>
+      <div className="flex items-center justify-between gap-3">
+        <motion.p
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+          className="text-[15px] font-semibold tracking-tight text-white/90"
+        >
+          {fullDate()}
+        </motion.p>
         {signedIn ? (
           <Link
             href="/settings"
-            aria-label="Settings"
+            aria-label="Profile & settings"
             className="no-tap-highlight grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/10 bg-white/5 text-sm font-semibold text-white/85"
           >
             {initial}
@@ -70,92 +64,86 @@ export function DailyDriveHeader({
         )}
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        <div
-          className={`flex items-center gap-1.5 rounded-pill border px-2.5 py-1 ${
-            streak > 0 && streakActiveToday
-              ? "border-amber-300/30 bg-amber-300/15 text-amber-200"
-              : streak > 0
-                ? "border-amber-300/20 bg-amber-300/10 text-amber-200/80"
-                : "border-white/10 bg-white/5 text-white/55"
-          }`}
-        >
-          <Flame className="h-3.5 w-3.5" />
-          <span className="text-xs font-semibold tabular-nums">
-            {streak}-day streak
-          </span>
-        </div>
-        <span className="text-xs text-white/40">{resting} resting</span>
-      </div>
-
-      {counts && <TodayPill counts={counts} />}
+      <Pills streak={streak} streakActiveToday={streakActiveToday} counts={counts} />
     </header>
   );
 }
 
-function TodayPill({ counts }: { counts: TodayCounts }) {
-  const chips: { label: string; done: boolean; icon: React.ReactNode; tone: string }[] = [];
-  if (counts.focusTotal > 0) {
-    chips.push({
-      label: `${counts.focusDone}/${counts.focusTotal} focus`,
-      done: counts.focusDone === counts.focusTotal,
-      icon: <Target className="h-3 w-3" />,
-      tone: "violet",
-    });
-  }
-  if (counts.habitsTotal > 0) {
-    chips.push({
-      label: `${counts.habitsDone}/${counts.habitsTotal} habits`,
-      done: counts.habitsDone === counts.habitsTotal,
-      icon: <Repeat className="h-3 w-3" />,
-      tone: "cyan",
-    });
-  }
-  if (counts.hasWorkout) {
-    chips.push({
-      label: counts.workoutDone ? "workout" : "workout",
-      done: counts.workoutDone,
-      icon: <Dumbbell className="h-3 w-3" />,
-      tone: "emerald",
-    });
-  }
-  if (counts.hasPrinciple) {
-    chips.push({
-      label: "principle",
-      done: true,
-      icon: <Quote className="h-3 w-3" />,
-      tone: "rose",
-    });
-  }
-  if (chips.length === 0) return null;
+function Pills({
+  streak,
+  streakActiveToday,
+  counts,
+}: {
+  streak: number;
+  streakActiveToday?: boolean;
+  counts?: TodayCounts;
+}) {
+  const streakActive = streak > 0 && streakActiveToday;
+  const streakTone = streakActive
+    ? "border-amber-300/35 bg-amber-300/15 text-amber-200"
+    : streak > 0
+      ? "border-amber-300/20 bg-amber-300/10 text-amber-200/80"
+      : "border-white/10 bg-white/[0.04] text-white/55";
 
-  const toneFor = (tone: string, done: boolean) => {
-    if (!done) return "border-white/10 bg-white/5 text-white/60";
-    switch (tone) {
-      case "violet":
-        return "border-accent-violet/30 bg-accent-violet/10 text-accent-violet";
-      case "cyan":
-        return "border-accent-cyan/30 bg-accent-cyan/10 text-accent-cyan";
-      case "emerald":
-        return "border-emerald-400/30 bg-emerald-400/10 text-emerald-300";
-      case "rose":
-        return "border-rose-400/25 bg-rose-400/10 text-rose-300";
-      default:
-        return "border-white/10 bg-white/5 text-white/75";
-    }
-  };
+  const focusDone = counts ? counts.focusDone : 0;
+  const focusTotal = counts ? counts.focusTotal : 0;
+  const focusActive = focusTotal > 0 && focusDone === focusTotal;
+  const focusTone =
+    focusTotal === 0
+      ? "border-white/10 bg-white/[0.04] text-white/45"
+      : focusActive
+        ? "border-accent-violet/40 bg-accent-violet/15 text-accent-violet"
+        : "border-accent-violet/25 bg-accent-violet/10 text-white/80";
+
+  const habitsDone = counts ? counts.habitsDone : 0;
+  const habitsTotal = counts ? counts.habitsTotal : 0;
+  const habitsActive = habitsTotal > 0 && habitsDone === habitsTotal;
+  const habitsTone =
+    habitsTotal === 0
+      ? "border-white/10 bg-white/[0.04] text-white/45"
+      : habitsActive
+        ? "border-accent-cyan/40 bg-accent-cyan/15 text-accent-cyan"
+        : "border-accent-cyan/25 bg-accent-cyan/10 text-white/80";
+
+  const movement = counts?.movementDone ?? 0;
+  const movementTone =
+    movement >= 1
+      ? "border-emerald-400/40 bg-emerald-400/15 text-emerald-300"
+      : "border-white/10 bg-white/[0.04] text-white/55";
 
   return (
-    <div className="mt-2.5 flex flex-wrap gap-1.5">
-      {chips.map((c) => (
-        <span
-          key={c.label}
-          className={`flex items-center gap-1 rounded-pill border px-2 py-0.5 text-[10px] uppercase tracking-wider transition-colors ${toneFor(c.tone, c.done)}`}
-        >
-          {c.icon}
-          <span>{c.label}</span>
-        </span>
-      ))}
+    <div className="mt-3 flex flex-wrap items-center gap-1.5">
+      <Pill tone={streakTone} icon={<Flame className="h-3.5 w-3.5" />}>
+        {streak}-day streak
+      </Pill>
+      <Pill tone={focusTone} icon={<Target className="h-3.5 w-3.5" />}>
+        {focusTotal > 0 ? `${focusDone}/${focusTotal} focus` : "focus"}
+      </Pill>
+      <Pill tone={habitsTone} icon={<Repeat className="h-3.5 w-3.5" />}>
+        {habitsTotal > 0 ? `${habitsDone}/${habitsTotal} habits` : "habits"}
+      </Pill>
+      <Pill tone={movementTone} icon={<Dumbbell className="h-3.5 w-3.5" />}>
+        {movement > 0 ? `${movement} movement` : "movement"}
+      </Pill>
     </div>
+  );
+}
+
+function Pill({
+  tone,
+  icon,
+  children,
+}: {
+  tone: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <span
+      className={`flex items-center gap-1 rounded-pill border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider tabular-nums ${tone}`}
+    >
+      {icon}
+      <span>{children}</span>
+    </span>
   );
 }

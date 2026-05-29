@@ -176,14 +176,13 @@ export default async function DailyDrivePage() {
     (c: any) => c.completed_on === today,
   ).length;
   const focusDoneToday = lockedItems.length - stillOpen.length;
+  const movementDoneToday = (movementLogs ?? []).filter((l: any) => l.day === today).length;
   const counts = {
     focusTotal: lockedItems.length,
     focusDone: focusDoneToday,
     habitsTotal: habitsToday.length,
     habitsDone: habitsDoneToday,
-    hasWorkout: (movementLogs ?? []).some((l: any) => l.day === todayInTz(tz)),
-    workoutDone: (movementLogs ?? []).some((l: any) => l.day === todayInTz(tz)),
-    hasPrinciple: Boolean(principle),
+    movementDone: movementDoneToday,
   };
 
   // Has the user connected Google? Decides whether to even render the calendar block.

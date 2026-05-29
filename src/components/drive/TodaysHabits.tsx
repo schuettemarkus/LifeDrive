@@ -101,6 +101,10 @@ export function TodaysHabits({ habits, completions, today }: Props) {
         </div>
       </div>
 
+      <p className="mb-1.5 text-[10px] uppercase tracking-[0.18em] text-white/30">
+        swipe right → done · swipe left → undo
+      </p>
+
       <div className="space-y-2">
         <AnimatePresence initial={false}>
           {sortedByDone.map((habit) => {
@@ -117,11 +121,7 @@ export function TodaysHabits({ habits, completions, today }: Props) {
                     if (done) toggle(habit);
                   }}
                 >
-                  <motion.button
-                    whileTap={{ scale: 0.985 }}
-                    onClick={() => toggle(habit)}
-                    className="w-full text-left"
-                  >
+                  <div className="w-full text-left">
                     <GlassCard
                       inset
                       variant={done ? "subtle" : "default"}
@@ -176,7 +176,7 @@ export function TodaysHabits({ habits, completions, today }: Props) {
                         </span>
                       )}
                     </GlassCard>
-                  </motion.button>
+                  </div>
                 </SwipeRow>
               </motion.div>
             );

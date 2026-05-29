@@ -150,12 +150,7 @@ export function MovementPicker({
                   }}
                   onSnooze={() => dismiss(opt.kind)}
                 >
-                  <motion.button
-                    whileTap={{ scale: 0.985 }}
-                    onClick={() => pick(opt.kind)}
-                    disabled={busyKind === opt.kind}
-                    className="w-full text-left"
-                  >
+                  <div className="w-full text-left">
                     <GlassCard
                       inset
                       variant={done ? "subtle" : "default"}
@@ -193,7 +188,7 @@ export function MovementPicker({
                         </span>
                       )}
                     </GlassCard>
-                  </motion.button>
+                  </div>
                 </SwipeRow>
               </motion.div>
             );
