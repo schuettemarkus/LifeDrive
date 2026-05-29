@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Mail } from "lucide-react";
 import { GlassCard } from "@/components/glass/GlassCard";
+import { GoogleIcon } from "@/components/glass/GoogleIcon";
 import { PageHeader } from "@/components/glass/PageHeader";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
@@ -116,9 +117,10 @@ function SignInForm() {
           <button
             onClick={withGoogle}
             disabled={busy}
-            className="w-full rounded-pill border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium text-white"
+            className="flex w-full items-center justify-center gap-2.5 rounded-pill border border-white/15 bg-white px-5 py-3 text-sm font-medium text-[#1f1f1f] shadow-sm transition-opacity disabled:opacity-60"
           >
-            continue with google
+            <GoogleIcon className="shrink-0" />
+            <span>Continue with Google</span>
           </button>
           <p className="mt-2 text-center text-[11px] text-white/45">
             We'll ask for read + write access to your calendar so Life Drive can book focus blocks.
