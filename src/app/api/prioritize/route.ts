@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireCurrentUserAndHousehold } from "@/lib/household";
 import { computeAreaDistribution, rankItems, todaysThree, type RankedItem } from "@/lib/priority";
 import { anthropic, modelFor, extractJson, joinTextBlocks } from "@/lib/anthropic";
+import { checkRateLimit, recordUsage, RateLimitError } from "@/lib/rate-limit";
 
 /**
  * GET /api/prioritize?persist=true&explain=true
@@ -10,7 +11,7 @@ import { anthropic, modelFor, extractJson, joinTextBlocks } from "@/lib/anthropi
  */
 export async function GET(req: Request) {
   try {
-    const { householdId, supabase } = await requireCurrentUserAndHousehold();
+    const { householdId, user, supabase } = await requireCurrentUserAndHousehold();
     const url = new URL(req.url);
     const persist = url.searchParams.get("persist") !== "false";
     const explain = url.searchParams.get("explain") === "true";
@@ -29,7 +30,9 @@ export async function GET(req: Request) {
     // Optional LLM explanation of the top items (numeric ranking stays in code).
     let explanations: Record<string, string> | null = null;
     if (explain && top.length > 0) {
+      await checkRateLimit(user.id, "prioritize_reason");
       const client = anthropic();
+      const model = modelFor("reason");
       const prompt = top.map((t) => ({
         id: t.id,
         title: t.title,
@@ -41,7 +44,7 @@ export async function GET(req: Request) {
         computed_reasons: t.computed.reasons,
       }));
       const resp = await client.messages.create({
-        model: modelFor("reason"),
+        model,
         max_tokens: 600,
         system:
           "Return STRICT JSON: { [item_id]: short_reason_string } where each reason is one calm clause under 14 words, lowercase, explaining why this item is high on the queue today. Lead with the strongest signal. No prose outside the JSON.",
@@ -51,6 +54,11 @@ export async function GET(req: Request) {
             content: `Top candidates:\n${JSON.stringify(prompt, null, 2)}`,
           },
         ],
+      });
+      void recordUsage(user.id, "prioritize_reason", {
+        model,
+        input_tokens: resp.usage?.input_tokens,
+        output_tokens: resp.usage?.output_tokens,
       });
       try {
         explanations = extractJson<Record<string, string>>(joinTextBlocks(resp.content));
@@ -92,6 +100,12 @@ export async function GET(req: Request) {
       ranked: ranked.slice(0, 50).map(stripComputed),
     });
   } catch (e) {
+    if (e instanceof RateLimitError) {
+      return NextResponse.json(
+        { error: e.message, retry_after_seconds: e.retryAfterSeconds },
+        { status: 429, headers: { "Retry-After": String(e.retryAfterSeconds) } },
+      );
+    }
     const message = e instanceof Error ? e.message : "Prioritize failed";
     return NextResponse.json({ error: message }, { status: 400 });
   }

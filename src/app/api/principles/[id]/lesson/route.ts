@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { anthropic, modelFor, joinTextBlocks } from "@/lib/anthropic";
 import { supabaseServer } from "@/lib/supabase/server";
+import { checkRateLimit, recordUsage, RateLimitError } from "@/lib/rate-limit";
 import type { Principle } from "@/types/database";
 
 /**
@@ -26,9 +27,14 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       return NextResponse.json({ lesson: row.lesson, cached: true, principle: row });
     }
 
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+    await checkRateLimit(user.id, "lesson");
+
     const client = anthropic();
+    const model = modelFor("reason");
     const resp = await client.messages.create({
-      model: modelFor("reason"),
+      model,
       max_tokens: 600,
       system: `You are a personal mentor explaining a life principle. The user has this principle on their daily dashboard. Write a tight micro-lesson (110-160 words, two short paragraphs). The first paragraph is a vivid real-world scenario where this principle would change someone's choice. The second is one concrete action the reader can do today to live the principle — verb-led, specific, finishable in under an hour. Plain prose. No headings, no bullets, no markdown, no quotation marks around the principle.`,
       messages: [
@@ -37,6 +43,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
           content: `Principle: ${row.text}\nTheme: ${row.theme ?? "unspecified"}`,
         },
       ],
+    });
+    void recordUsage(user.id, "lesson", {
+      model,
+      input_tokens: resp.usage?.input_tokens,
+      output_tokens: resp.usage?.output_tokens,
     });
     const lesson = joinTextBlocks(resp.content).trim();
     if (!lesson) throw new Error("empty_lesson");
@@ -48,6 +59,12 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
     return NextResponse.json({ lesson, cached: false, principle: { ...row, lesson } });
   } catch (e) {
+    if (e instanceof RateLimitError) {
+      return NextResponse.json(
+        { error: e.message, retry_after_seconds: e.retryAfterSeconds },
+        { status: 429, headers: { "Retry-After": String(e.retryAfterSeconds) } },
+      );
+    }
     const msg = e instanceof Error ? e.message : "lesson_error";
     return NextResponse.json({ error: msg }, { status: 400 });
   }

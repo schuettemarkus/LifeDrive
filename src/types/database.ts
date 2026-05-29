@@ -159,6 +159,26 @@ export type Review = {
   created_at: string;
 };
 
+export type DailyActivity = {
+  user_id: string;
+  day: string; // YYYY-MM-DD
+  items_completed: number;
+  habits_completed: number;
+  workouts_completed: number;
+  first_action_at: string | null;
+  last_action_at: string | null;
+};
+
+export type AiUsage = {
+  id: number;
+  user_id: string;
+  endpoint: string;
+  model: string | null;
+  input_tokens: number | null;
+  output_tokens: number | null;
+  created_at: string;
+};
+
 export type GoogleAccount = {
   user_id: string;
   google_sub: string;
@@ -192,9 +212,25 @@ export type Database = {
       workouts: TableShape<Workout>;
       reviews: TableShape<Review>;
       google_accounts: TableShape<GoogleAccount>;
+      daily_activity: TableShape<DailyActivity>;
+      ai_usage: TableShape<AiUsage>;
     };
     Views: { [_ in never]: never };
-    Functions: { [_ in never]: never };
+    Functions: {
+      get_streak: {
+        Args: { p_user_id: string };
+        Returns: {
+          streak: number;
+          today_active: boolean;
+          last_active: string | null;
+          total_active_days: number;
+        }[];
+      };
+      ai_calls_in_window: {
+        Args: { p_user_id: string; p_endpoint: string; p_minutes: number };
+        Returns: number;
+      };
+    };
     Enums: {
       item_type: ItemType;
       item_status: ItemStatus;

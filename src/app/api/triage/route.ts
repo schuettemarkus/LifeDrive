@@ -3,6 +3,7 @@ import { z } from "zod";
 import { anthropic, modelFor, extractJson, joinTextBlocks } from "@/lib/anthropic";
 import { requireCurrentUserAndHousehold } from "@/lib/household";
 import { LIFE_AREA_KEYS } from "@/lib/design";
+import { checkRateLimit, recordUsage, RateLimitError } from "@/lib/rate-limit";
 
 const triageItemSchema = z.object({
   title: z.string().min(1),
@@ -64,11 +65,12 @@ Rules:
 - Title must start with a verb. No hedging language.
 - Output ONLY the JSON array.`;
 
-async function triageText(rawText: string): Promise<TriageItem[]> {
+async function triageText(rawText: string, userId: string): Promise<TriageItem[]> {
   const client = anthropic();
   const today = new Date().toISOString().slice(0, 10);
+  const model = modelFor("triage");
   const resp = await client.messages.create({
-    model: modelFor("triage"),
+    model,
     max_tokens: 2048,
     system: `${SYSTEM}\n\nTODAY: ${today}`,
     messages: [
@@ -77,6 +79,12 @@ async function triageText(rawText: string): Promise<TriageItem[]> {
         content: `Brain dump (one or more items):\n\n"""\n${rawText}\n"""`,
       },
     ],
+  });
+  // Fire-and-forget usage record; the pre-flight check has already gated entry.
+  void recordUsage(userId, "triage", {
+    model,
+    input_tokens: resp.usage?.input_tokens,
+    output_tokens: resp.usage?.output_tokens,
   });
   const text = joinTextBlocks(resp.content);
   const parsed = extractJson<unknown>(text);
@@ -118,7 +126,9 @@ export async function POST(req: Request) {
     if (!body.rawText) {
       return NextResponse.json({ error: "Provide rawText or items" }, { status: 400 });
     }
-    const items = await triageText(body.rawText);
+    const { user: triageUser } = await requireCurrentUserAndHousehold();
+    await checkRateLimit(triageUser.id, "triage");
+    const items = await triageText(body.rawText, triageUser.id);
     if (!body.commit) return NextResponse.json({ items });
 
     const { householdId, user, supabase } = await requireCurrentUserAndHousehold();
@@ -141,6 +151,12 @@ export async function POST(req: Request) {
     if (error) throw error;
     return NextResponse.json({ items: data });
   } catch (e) {
+    if (e instanceof RateLimitError) {
+      return NextResponse.json(
+        { error: e.message, retry_after_seconds: e.retryAfterSeconds },
+        { status: 429, headers: { "Retry-After": String(e.retryAfterSeconds) } },
+      );
+    }
     const message = e instanceof Error ? e.message : "Triage failed";
     return NextResponse.json({ error: message }, { status: 400 });
   }

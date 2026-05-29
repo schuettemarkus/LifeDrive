@@ -39,6 +39,11 @@ export function TodaysHabits({ habits, completions }: Props) {
       await fetch(`/api/habits/${habit.id}/complete`, {
         method: wasDone ? "DELETE" : "POST",
       });
+      if (!wasDone) {
+        // Habit completion may trigger a streak — re-rank to surface a quick-win
+        // and re-balance area weights.
+        void fetch("/api/prioritize?persist=true", { method: "GET" });
+      }
     } catch {
       // revert on failure
       setOptimistic((m) => ({ ...m, [habit.id]: wasDone }));

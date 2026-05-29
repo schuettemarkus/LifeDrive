@@ -5,6 +5,7 @@ import { ScheduleStrip } from "@/components/drive/ScheduleStrip";
 import { PrincipleCard } from "@/components/drive/PrincipleCard";
 import { TodaysHabits } from "@/components/drive/TodaysHabits";
 import { WorkoutCard } from "@/components/drive/WorkoutCard";
+import { MorningBriefing } from "@/components/drive/MorningBriefing";
 import { GlassCard } from "@/components/glass/GlassCard";
 import { PageHeader } from "@/components/glass/PageHeader";
 import {
@@ -21,6 +22,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { getCurrentHouseholdId } from "@/lib/household";
 import { todaysThree, computeAreaDistribution } from "@/lib/priority";
 import { startOfDay } from "@/lib/utils";
+import { getStreak } from "@/lib/streak";
 import type { LifeAreaKey } from "@/lib/design";
 
 export const dynamic = "force-dynamic";
@@ -106,6 +108,7 @@ export default async function DailyDrivePage() {
     { data: blocks },
     { data: habits },
     { data: habitCompletions },
+    streakInfo,
   ] = await Promise.all([
     supabase.from("items").select("*").eq("household_id", householdId),
     supabase.from("profiles").select("display_name").eq("id", user!.id).maybeSingle(),
@@ -141,6 +144,7 @@ export default async function DailyDrivePage() {
       .select("*")
       .eq("user_id", user!.id)
       .eq("completed_on", todayIso),
+    getStreak(user!.id),
   ]);
 
   const allItems = items ?? [];
@@ -197,13 +201,43 @@ export default async function DailyDrivePage() {
       .eq("id", principle.id);
   }
 
+  const habitsToday = (habits ?? []) as any[];
+  const habitsDoneToday = (habitCompletions ?? []).length;
+  const focusDoneToday = focusItems.filter((i) =>
+    allItems.find((x: any) => x.id === i.id && x.status === "done"),
+  ).length;
+  const counts = {
+    focusTotal: focusItems.length,
+    focusDone: focusDoneToday,
+    habitsTotal: habitsToday.length,
+    habitsDone: habitsDoneToday,
+    hasWorkout: Boolean(workout),
+    workoutDone: Boolean(workout?.completed_at),
+    hasPrinciple: Boolean(principle),
+  };
+
+  const firstName = profile?.display_name?.split(" ")[0] ?? "friend";
+
   return (
     <main className="flex flex-col">
+      <MorningBriefing
+        name={firstName}
+        principle={
+          principle
+            ? { text: principle.text, group: principle.theme ?? null }
+            : null
+        }
+        focusItems={focusItems.map((it) => ({ id: it.id, title: it.title, area: it.area }))}
+        habitsCount={habitsToday.length}
+        workoutName={workout?.name ?? null}
+      />
       <DailyDriveHeader
-        name={profile?.display_name?.split(" ")[0] ?? "friend"}
-        streak={MOCK_STREAK}
+        name={firstName}
+        streak={streakInfo.streak}
+        streakActiveToday={streakInfo.todayActive}
         resting={Math.max(0, resting)}
         signedIn
+        counts={counts}
       />
       {principle && (
         <PrincipleCard

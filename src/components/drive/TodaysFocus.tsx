@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -7,6 +8,8 @@ import { GlassCard } from "@/components/glass/GlassCard";
 import { AreaPill } from "@/components/glass/AreaPill";
 import { PriorityRing } from "@/components/glass/PriorityRing";
 import { SwipeRow } from "@/components/glass/SwipeRow";
+import { Celebration } from "@/components/glass/Celebration";
+import { SnoozePicker, snoozeChoiceToPatch, type SnoozeChoice } from "@/components/glass/SnoozePicker";
 import { formatMinutes } from "@/lib/utils";
 import { areaColor } from "@/lib/design";
 import type { MockItem } from "@/lib/mock-data";
@@ -18,41 +21,48 @@ function timeRange(start?: string, end?: string) {
   return `${fmt(start)} → ${fmt(end)}`;
 }
 
-/**
- * Optimistic mutation against the items API. Caller already animated the row
- * away; this just makes it stick.
- */
-function useItemActions() {
+export function TodaysFocus({ items }: { items: MockItem[] }) {
   const router = useRouter();
+  const [first, ...rest] = items;
+  const [celebrate, setCelebrate] = useState(0);
+  const [snoozeFor, setSnoozeFor] = useState<string | null>(null);
+
   async function complete(id: string) {
     try {
       await fetch(`/api/items/${id}/complete`, { method: "POST" });
+      setCelebrate((n) => n + 1);
+      // Fire-and-forget re-rank so the queue refreshes its ordering after this win.
+      void fetch("/api/prioritize?persist=true", { method: "GET" });
     } catch {
       /* row already vanished optimistically; surface refresh will reconcile */
     } finally {
       router.refresh();
     }
   }
-  async function snooze(id: string) {
+
+  function openSnooze(id: string) {
+    setSnoozeFor(id);
+  }
+
+  async function applySnooze(choice: SnoozeChoice) {
+    const id = snoozeFor;
+    if (!id) return;
+    const patch = snoozeChoiceToPatch(choice);
     try {
-      // Snooze = back to backlog. Out of today's focus.
       await fetch(`/api/items/${id}`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ status: "backlog", is_next_action: false }),
+        body: JSON.stringify(patch),
       });
+      void fetch("/api/prioritize?persist=true", { method: "GET" });
     } catch {
       /* swallow */
     } finally {
+      setSnoozeFor(null);
       router.refresh();
     }
   }
-  return { complete, snooze };
-}
 
-export function TodaysFocus({ items }: { items: MockItem[] }) {
-  const [first, ...rest] = items;
-  const { complete, snooze } = useItemActions();
   return (
     <section className="px-4">
       <h2 className="mb-2 mt-6 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/40">
@@ -64,7 +74,7 @@ export function TodaysFocus({ items }: { items: MockItem[] }) {
         <HeroCard
           item={first}
           onComplete={() => complete(first.id)}
-          onSnooze={() => snooze(first.id)}
+          onSnooze={() => openSnooze(first.id)}
         />
       )}
 
@@ -78,7 +88,7 @@ export function TodaysFocus({ items }: { items: MockItem[] }) {
           >
             <SwipeRow
               onComplete={() => complete(item.id)}
-              onSnooze={() => snooze(item.id)}
+              onSnooze={() => openSnooze(item.id)}
             >
               <GlassCard inset className="flex items-center gap-3">
                 <PriorityRing value={70 - i * 18} size={44} stroke={3} label={`${i + 2}`} />
@@ -98,6 +108,13 @@ export function TodaysFocus({ items }: { items: MockItem[] }) {
           </motion.div>
         ))}
       </div>
+
+      <Celebration trigger={celebrate} />
+      <SnoozePicker
+        open={snoozeFor !== null}
+        onClose={() => setSnoozeFor(null)}
+        onPick={applySnooze}
+      />
     </section>
   );
 }

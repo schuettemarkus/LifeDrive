@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { anthropic, modelFor, extractJson, joinTextBlocks } from "@/lib/anthropic";
 import { requireCurrentUserAndHousehold } from "@/lib/household";
+import { checkRateLimit, recordUsage, RateLimitError } from "@/lib/rate-limit";
 
 const schema = z.object({
   item_id: z.string().uuid(),
@@ -50,9 +51,12 @@ export async function POST(req: Request) {
     if (item.type !== "project")
       return NextResponse.json({ error: "only projects can be decomposed" }, { status: 400 });
 
+    await checkRateLimit(user.id, "decompose");
+
     const client = anthropic();
+    const model = modelFor("reason");
     const resp = await client.messages.create({
-      model: modelFor("reason"),
+      model,
       max_tokens: 1500,
       system: SYSTEM,
       messages: [
@@ -61,6 +65,11 @@ export async function POST(req: Request) {
           content: `Project title: ${item.title}\nLife area: ${item.life_area ?? "unspecified"}\nNotes:\n${item.notes ?? "(none)"}`,
         },
       ],
+    });
+    void recordUsage(user.id, "decompose", {
+      model,
+      input_tokens: resp.usage?.input_tokens,
+      output_tokens: resp.usage?.output_tokens,
     });
 
     type Decomposed = z.infer<typeof decomposedSchema>;
@@ -90,6 +99,12 @@ export async function POST(req: Request) {
     if (insErr) throw insErr;
     return NextResponse.json({ steps: data, next_action_index: parsed.next_action_index });
   } catch (e) {
+    if (e instanceof RateLimitError) {
+      return NextResponse.json(
+        { error: e.message, retry_after_seconds: e.retryAfterSeconds },
+        { status: 429, headers: { "Retry-After": String(e.retryAfterSeconds) } },
+      );
+    }
     const message = e instanceof Error ? e.message : "Decompose failed";
     return NextResponse.json({ error: message }, { status: 400 });
   }
