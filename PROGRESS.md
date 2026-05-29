@@ -46,3 +46,35 @@ The aesthetic is locked first, per the build order. Real data + auth land next.
 - All routes that need a session are gated by `middleware.ts`; demo mode (no env vars) keeps the surface renderable for marketing / preview deploys.
 
 This closes the build prompt. The Definition of Done from the brief — install to home screen, brain-dump 30 items, plan, accept events into Google, swipe to complete, see the weekly review — is end-to-end functional once Supabase + Anthropic + Google env vars are set on Vercel.
+
+---
+
+## Post-launch sprints
+
+### Round 1 — UX polish & functional pass
+- Household rename (owner-gated PATCH + inline pencil editor on /settings/household)
+- Boards filter by life area (`?area=key`) wired to balance-wheel links and a pill-bar filter
+- Swipe-to-complete now hits `/api/items/[id]/complete` (deletes the linked Google event too)
+- Capture lane chips (inbox / this week / backlog) per triaged item; auto-promotes urgency ≥4 to this_week; "to the drive" after save
+- Tab-bar clearance CSS var so the raised capture button never overlaps content
+- PrincipleCard expand + AI micro-lesson cached on the row
+- Daily habits feature: per-user habits with days-of-week + time-of-day + icon, /habits management screen, Drive section with optimistic tap-to-complete
+
+### Sprint 1 — Close the daily loop ✅ shipped
+- **0003 migration** — `daily_activity` ledger + triggers on item/habit/workout completion + `get_streak()` security-definer function. Replaces MOCK_STREAK throughout.
+- **Today scoreboard pill** under the date — focus/habits/workout/principle chips, tone per category, dim until done
+- **Snooze picker** — later today / tomorrow / weekend / next week / pick a date — modal bottom sheet, server patch maps to status + due_date
+- **Completion confetti** — 14-piece micro-burst, prefers-reduced-motion aware
+- **Morning briefing takeover** — full-screen, once per day before 11am, dismissible (localStorage)
+- **Auto re-rank** — fires `/api/prioritize?persist=true` after every swipe/complete/habit
+- **0004 migration** — `ai_usage` ledger + `ai_calls_in_window()` RPC. Per-endpoint + global daily caps. 429 + Retry-After on overrun
+- **Sentry** wired with no-op fallback when DSN env vars are absent. `/monitoring` tunnel route
+- **0005 migration + Web Push** — `push_subscriptions` table, VAPID-signed push, service-worker handlers, `/settings` toggle with send-a-test, morning/evening crons in `vercel.json`
+
+### Remaining sprints
+- **Sprint 2** — Capture without opening the app: Siri Shortcut, iOS share extension, email-to-capture (Resend inbound), offline write queue, Apple Watch / lock-screen affordances
+- **Sprint 3** — Intelligence layer: context-aware suggestions, auto-reschedule on conflict, project momentum nudges, principle reflections, workout progression
+- **Sprint 4** — Family that actually shares: per-member home views, delegate-with-context, kids' chores, household streaks, calendar merge, item comments
+- **Sprint 5** — Trust + scale: light theme, onboarding flow, data export, account deletion, backups, Playwright tests, GitHub Actions, 2FA, custom domain + Resend SMTP
+
+Full sprint plan with sub-items: see the project memory file `project_lifedrive.md`.
