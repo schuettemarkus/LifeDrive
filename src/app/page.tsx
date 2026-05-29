@@ -26,12 +26,15 @@ export const dynamic = "force-dynamic";
 
 export default async function DailyDrivePage() {
   const householdId = await getCurrentHouseholdId();
+  const supabase = await supabaseServer();
+  const { data: { user } } = await supabase.auth.getUser();
+  const signedIn = Boolean(user);
 
-  // Demo / unauth mode — render the mock Daily Drive so the surface stays beautiful.
-  if (!householdId) {
+  // Unauthenticated — render the mock Daily Drive so the surface stays beautiful.
+  if (!signedIn) {
     return (
       <main className="flex flex-col">
-        <DailyDriveHeader name="friend" streak={MOCK_STREAK} resting={MOCK_RESTING} />
+        <DailyDriveHeader name="friend" streak={MOCK_STREAK} resting={MOCK_RESTING} signedIn={false} />
         <section className="px-4 pt-5">
           <Link
             href="/auth/sign-in"
@@ -40,16 +43,57 @@ export default async function DailyDrivePage() {
             sign in to use your real list →
           </Link>
         </section>
-        <TodaysFocus items={MOCK_TODAYS_THREE} />
-        <ScheduleStrip blocks={MOCK_BLOCKS} />
         <PrincipleCard text={MOCK_PRINCIPLE.text} group={MOCK_PRINCIPLE.group} />
+        <TodaysFocus items={MOCK_TODAYS_THREE} />
+        <ScheduleStrip blocks={MOCK_BLOCKS} density="compact" />
         <WorkoutCard name={MOCK_WORKOUT.name} exercises={MOCK_WORKOUT.exercises} />
       </main>
     );
   }
 
-  const supabase = await supabaseServer();
-  const { data: { user } } = await supabase.auth.getUser();
+  // Signed in but no household — finish onboarding before showing real data.
+  if (!householdId) {
+    const firstName =
+      (user?.user_metadata as { full_name?: string; name?: string })?.full_name ??
+      (user?.user_metadata as { name?: string })?.name ??
+      user?.email?.split("@")[0] ??
+      "friend";
+    return (
+      <main className="flex flex-col">
+        <DailyDriveHeader
+          name={firstName.split(" ")[0]}
+          streak={0}
+          resting={0}
+          signedIn
+        />
+        <section className="px-4 pt-6 space-y-3 pb-32">
+          <GlassCard inset variant="strong" className="space-y-3">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-white/40">welcome</p>
+            <h2 className="text-xl font-semibold tracking-tight text-white">
+              You're signed in. Let's load your life.
+            </h2>
+            <p className="text-sm text-white/65">
+              Run the one-time seed locally to create your <strong>Home base</strong> household and import your
+              projects, tasks, principles, and workout split.
+            </p>
+            <pre className="overflow-x-auto rounded-2xl border border-white/10 bg-black/40 px-3 py-2 text-[11px] text-emerald-200">
+              <code>SEED_OWNER_EMAIL={user?.email ?? "you@example.com"} npm run seed</code>
+            </pre>
+            <p className="text-[11px] text-white/45">
+              Or create an empty household and start fresh:
+            </p>
+            <Link
+              href="/onboarding/household"
+              className="inline-block rounded-pill bg-accent-gradient px-4 py-2 text-sm font-semibold text-white shadow-glow"
+            >
+              create household
+            </Link>
+          </GlassCard>
+          <PrincipleCard text={MOCK_PRINCIPLE.text} group={MOCK_PRINCIPLE.group} />
+        </section>
+      </main>
+    );
+  }
 
   const [{ data: items }, { data: profile }, { data: principles }, { data: workouts }, { data: blocks }] =
     await Promise.all([
@@ -137,6 +181,7 @@ export default async function DailyDrivePage() {
         name={profile?.display_name?.split(" ")[0] ?? "friend"}
         streak={MOCK_STREAK}
         resting={Math.max(0, resting)}
+        signedIn
       />
       {principle && (
         <PrincipleCard text={principle.text} group={principle.theme ?? "principle"} />
