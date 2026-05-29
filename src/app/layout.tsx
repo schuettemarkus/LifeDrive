@@ -43,7 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="dark">
       <body className="min-h-screen">
         <QueryProvider>
-          <div className="mx-auto max-w-xl pb-24">{children}</div>
+          <div className="mx-auto max-w-xl pb-tabbar">{children}</div>
           <TabBar />
         </QueryProvider>
       </body>

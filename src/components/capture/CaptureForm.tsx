@@ -2,7 +2,8 @@
 
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mic, Sparkles, Check } from "lucide-react";
+import { Mic, Sparkles, Check, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { GlassCard } from "@/components/glass/GlassCard";
 import { AreaPill } from "@/components/glass/AreaPill";
 import { formatMinutes } from "@/lib/utils";
@@ -18,13 +19,22 @@ type TriagedItem = {
   impact?: number;
   suggested_due_date?: string | null;
   is_next_action?: boolean;
+  status?: "inbox" | "backlog" | "this_week" | "doing";
 };
 
+const LANES: { value: TriagedItem["status"]; label: string }[] = [
+  { value: "inbox", label: "inbox" },
+  { value: "this_week", label: "this week" },
+  { value: "backlog", label: "backlog" },
+];
+
 export function CaptureForm({ initial }: { initial?: string }) {
+  const router = useRouter();
   const [raw, setRaw] = useState(initial ?? "");
   const [busy, setBusy] = useState(false);
   const [items, setItems] = useState<TriagedItem[] | null>(null);
   const [committed, setCommitted] = useState(false);
+  const [savedCount, setSavedCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [listening, setListening] = useState(false);
   const recRef = useRef<any>(null);
@@ -41,12 +51,20 @@ export function CaptureForm({ initial }: { initial?: string }) {
       });
       const j = await res.json();
       if (!res.ok) throw new Error(j.error ?? "Triage failed");
-      setItems(j.items ?? []);
+      const sorted = (j.items ?? []) as TriagedItem[];
+      // Default high-urgency items into this_week, others into inbox.
+      setItems(sorted.map((it) => ({ ...it, status: it.urgency >= 4 ? "this_week" : "inbox" })));
     } catch (e: any) {
       setError(e.message);
     } finally {
       setBusy(false);
     }
+  }
+
+  function setLane(idx: number, lane: TriagedItem["status"]) {
+    setItems((prev) =>
+      prev ? prev.map((it, i) => (i === idx ? { ...it, status: lane } : it)) : prev,
+    );
   }
 
   async function commit() {
@@ -57,11 +75,13 @@ export function CaptureForm({ initial }: { initial?: string }) {
       const res = await fetch("/api/triage", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ rawText: raw, commit: true }),
+        body: JSON.stringify({ items, commit: true }),
       });
       const j = await res.json();
       if (!res.ok) throw new Error(j.error ?? "Save failed");
+      setSavedCount(items.length);
       setCommitted(true);
+      router.refresh();
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -102,6 +122,7 @@ export function CaptureForm({ initial }: { initial?: string }) {
     setRaw("");
     setItems(null);
     setCommitted(false);
+    setSavedCount(0);
     setError(null);
   }
 
@@ -119,14 +140,22 @@ export function CaptureForm({ initial }: { initial?: string }) {
               <Check className="h-8 w-8 text-emerald-300" />
               <p className="text-base font-semibold text-white">Sorted & resting.</p>
               <p className="text-xs text-white/55">
-                {items?.length} items dropped into your inbox.
+                {savedCount} item{savedCount === 1 ? "" : "s"} saved. Out of sight, in the queue.
               </p>
-              <button
-                onClick={reset}
-                className="mt-3 rounded-pill border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80"
-              >
-                drop more
-              </button>
+              <div className="mt-3 flex gap-2">
+                <button
+                  onClick={reset}
+                  className="rounded-pill border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80"
+                >
+                  drop more
+                </button>
+                <button
+                  onClick={() => router.push("/")}
+                  className="rounded-pill bg-accent-gradient px-4 py-2 text-sm font-semibold text-white shadow-glow"
+                >
+                  to the drive <ArrowRight className="ml-1 inline h-3.5 w-3.5" />
+                </button>
+              </div>
             </GlassCard>
           </motion.div>
         ) : items ? (
@@ -138,7 +167,8 @@ export function CaptureForm({ initial }: { initial?: string }) {
             className="space-y-2"
           >
             <p className="text-xs text-white/55">
-              {items.length} item{items.length === 1 ? "" : "s"} sorted. Tap save when this looks right.
+              {items.length} item{items.length === 1 ? "" : "s"} sorted. Tap a lane chip to move it. High urgency
+              jumps to "this week" automatically.
             </p>
             {items.map((it, i) => (
               <GlassCard key={i} inset>
@@ -152,6 +182,24 @@ export function CaptureForm({ initial }: { initial?: string }) {
                 </div>
                 <p className="mt-1.5 text-[14px] font-medium text-white/90">{it.title}</p>
                 {it.notes && <p className="mt-0.5 text-[11px] text-white/55">{it.notes}</p>}
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {LANES.map((l) => {
+                    const active = (it.status ?? "inbox") === l.value;
+                    return (
+                      <button
+                        key={l.value}
+                        onClick={() => setLane(i, l.value)}
+                        className={`rounded-pill px-2 py-0.5 text-[10px] uppercase tracking-wider transition-colors ${
+                          active
+                            ? "bg-accent-gradient text-white shadow-glow"
+                            : "border border-white/10 bg-white/5 text-white/55"
+                        }`}
+                      >
+                        {l.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </GlassCard>
             ))}
             <div className="flex justify-end gap-2">

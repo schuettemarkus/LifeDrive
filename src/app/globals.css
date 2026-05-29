@@ -5,6 +5,9 @@
 @layer base {
   :root {
     color-scheme: dark;
+    /* Tab bar visual height: pill height (~56px) + raised capture button overflow (~28px)
+       + safe-area inset. Use this var anywhere you need clearance from the bottom nav. */
+    --tab-bar-clearance: calc(96px + env(safe-area-inset-bottom));
   }
 
   html,
@@ -87,6 +90,12 @@
 @layer utilities {
   .safe-bottom {
     padding-bottom: max(env(safe-area-inset-bottom), 0.75rem);
+  }
+  .pb-tabbar {
+    padding-bottom: var(--tab-bar-clearance);
+  }
+  .mb-tabbar {
+    margin-bottom: var(--tab-bar-clearance);
   }
   .no-tap-highlight {
     -webkit-tap-highlight-color: transparent;

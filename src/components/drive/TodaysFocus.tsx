@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { GlassCard } from "@/components/glass/GlassCard";
 import { AreaPill } from "@/components/glass/AreaPill";
 import { PriorityRing } from "@/components/glass/PriorityRing";
@@ -17,8 +18,41 @@ function timeRange(start?: string, end?: string) {
   return `${fmt(start)} → ${fmt(end)}`;
 }
 
+/**
+ * Optimistic mutation against the items API. Caller already animated the row
+ * away; this just makes it stick.
+ */
+function useItemActions() {
+  const router = useRouter();
+  async function complete(id: string) {
+    try {
+      await fetch(`/api/items/${id}/complete`, { method: "POST" });
+    } catch {
+      /* row already vanished optimistically; surface refresh will reconcile */
+    } finally {
+      router.refresh();
+    }
+  }
+  async function snooze(id: string) {
+    try {
+      // Snooze = back to backlog. Out of today's focus.
+      await fetch(`/api/items/${id}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ status: "backlog", is_next_action: false }),
+      });
+    } catch {
+      /* swallow */
+    } finally {
+      router.refresh();
+    }
+  }
+  return { complete, snooze };
+}
+
 export function TodaysFocus({ items }: { items: MockItem[] }) {
   const [first, ...rest] = items;
+  const { complete, snooze } = useItemActions();
   return (
     <section className="px-4">
       <h2 className="mb-2 mt-6 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/40">
@@ -26,7 +60,13 @@ export function TodaysFocus({ items }: { items: MockItem[] }) {
         today's focus
       </h2>
 
-      {first && <HeroCard item={first} />}
+      {first && (
+        <HeroCard
+          item={first}
+          onComplete={() => complete(first.id)}
+          onSnooze={() => snooze(first.id)}
+        />
+      )}
 
       <div className="mt-3 space-y-2.5">
         {rest.map((item, i) => (
@@ -36,7 +76,10 @@ export function TodaysFocus({ items }: { items: MockItem[] }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay: 0.1 + i * 0.06 }}
           >
-            <SwipeRow>
+            <SwipeRow
+              onComplete={() => complete(item.id)}
+              onSnooze={() => snooze(item.id)}
+            >
               <GlassCard inset className="flex items-center gap-3">
                 <PriorityRing value={70 - i * 18} size={44} stroke={3} label={`${i + 2}`} />
                 <div className="min-w-0 flex-1">
@@ -59,7 +102,15 @@ export function TodaysFocus({ items }: { items: MockItem[] }) {
   );
 }
 
-function HeroCard({ item }: { item: MockItem }) {
+function HeroCard({
+  item,
+  onComplete,
+  onSnooze,
+}: {
+  item: MockItem;
+  onComplete: () => void;
+  onSnooze: () => void;
+}) {
   const c = areaColor(item.area);
   return (
     <motion.div
@@ -67,7 +118,7 @@ function HeroCard({ item }: { item: MockItem }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45 }}
     >
-      <SwipeRow>
+      <SwipeRow onComplete={onComplete} onSnooze={onSnooze}>
         <GlassCard
           variant="strong"
           inset
@@ -106,6 +157,9 @@ function HeroCard({ item }: { item: MockItem }) {
                 <p className="mt-1 text-2xl font-bold tracking-tight text-white">{formatMinutes(item.effortMinutes)}</p>
               </div>
             </div>
+            <p className="mt-4 text-center text-[10px] uppercase tracking-[0.18em] text-white/30">
+              swipe right → complete · swipe left → snooze
+            </p>
           </div>
         </GlassCard>
       </SwipeRow>

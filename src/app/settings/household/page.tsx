@@ -4,6 +4,7 @@ import { GlassCard } from "@/components/glass/GlassCard";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getCurrentHouseholdId } from "@/lib/household";
 import { InviteForm } from "@/components/settings/InviteForm";
+import { HouseholdNameEditor } from "@/components/settings/HouseholdNameEditor";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,7 @@ export default async function HouseholdPage() {
   }
 
   const supabase = await supabaseServer();
+  const { data: { user } } = await supabase.auth.getUser();
   const { data: hh } = await supabase.from("households").select("*").eq("id", householdId).maybeSingle();
   const { data: members } = await supabase
     .from("household_members")
@@ -38,9 +40,19 @@ export default async function HouseholdPage() {
     .is("accepted_by", null)
     .order("created_at", { ascending: false });
 
+  const myMembership = (members ?? []).find((m: any) => m.user_id === user?.id);
+  const isOwner = myMembership?.role === "owner";
+  const name = (hh as any)?.name ?? "Home base";
+
   return (
     <main>
-      <PageHeader eyebrow="household" title={(hh as any)?.name ?? "Home base"} description="Members + invites." />
+      <header className="px-4 pt-6">
+        <p className="text-[10px] uppercase tracking-[0.18em] text-white/40">household</p>
+        <div className="mt-1">
+          <HouseholdNameEditor id={householdId} initial={name} canEdit={isOwner} />
+        </div>
+        <p className="mt-2 text-sm text-white/55">Members + invites.</p>
+      </header>
       <section className="px-4 pt-5 pb-32 space-y-3">
         <GlassCard inset>
           <p className="text-[10px] uppercase tracking-[0.18em] text-white/40">members</p>
