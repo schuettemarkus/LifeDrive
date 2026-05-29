@@ -138,6 +138,9 @@ export default async function DailyDrivePage() {
         streak={MOCK_STREAK}
         resting={Math.max(0, resting)}
       />
+      {principle && (
+        <PrincipleCard text={principle.text} group={principle.theme ?? "principle"} />
+      )}
       {focusItems.length > 0 ? (
         <TodaysFocus items={focusItems} />
       ) : (
@@ -145,10 +148,7 @@ export default async function DailyDrivePage() {
           <PageHeader title="Quiet drive" description="Nothing pressing today. Drop a quick capture if you have ideas resting." />
         </section>
       )}
-      {scheduleBlocks.length > 0 && <ScheduleStrip blocks={scheduleBlocks} />}
-      {principle && (
-        <PrincipleCard text={principle.text} group={principle.theme ?? "principle"} />
-      )}
+      {scheduleBlocks.length > 0 && <ScheduleStrip blocks={scheduleBlocks} density="compact" />}
       {workout && <WorkoutCard name={workout.name} exercises={workout.exercises ?? []} />}
       {!workout && (
         <section className="mb-28 px-4 pt-5">
