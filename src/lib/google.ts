@@ -214,18 +214,28 @@ export async function deleteEvent(userId: string, eventId: string) {
   await calendar.events.delete({ calendarId: "primary", eventId });
 }
 
-/** Compute free intervals in [start..end] within [working.start..working.end] per day. */
+/** Compute free intervals in [start..end] within [working.start..working.end] per day.
+ *  When `now` is supplied, the day start is clamped to max(dayStart, now+5min) so
+ *  we never propose blocks in the past. */
 export function freeSlotsInDay(opts: {
   dayStart: Date;
   dayEnd: Date;
   busy: { start: Date; end: Date }[];
+  now?: Date;
 }): { start: Date; end: Date }[] {
   const sorted = [...opts.busy]
     .map((b) => ({ start: new Date(b.start), end: new Date(b.end) }))
     .sort((a, b) => a.start.getTime() - b.start.getTime());
 
+  const clampStart =
+    opts.now && opts.now > opts.dayStart
+      ? new Date(opts.now.getTime() + 5 * 60 * 1000)
+      : new Date(opts.dayStart);
+
+  if (clampStart >= opts.dayEnd) return [];
+
   const free: { start: Date; end: Date }[] = [];
-  let cursor = new Date(opts.dayStart);
+  let cursor = clampStart;
   for (const b of sorted) {
     if (b.end <= cursor) continue;
     if (b.start >= opts.dayEnd) break;

@@ -28,7 +28,10 @@ export function ScheduleStrip({
   /** When true, render the entire 24-hour day instead of just the active window. */
   fullDay?: boolean;
 }) {
-  const DAY_START = fullDay ? 0 : 6;
+  // Calendar tab (`fullDay`) runs 5am → midnight so the start of day is visible
+  // without burning 5 hours of empty rails. Drive's compact preview keeps the
+  // 6→22 working window.
+  const DAY_START = fullDay ? 5 : 6;
   const DAY_END = fullDay ? 24 : 22;
   const hours = Array.from({ length: DAY_END - DAY_START + 1 }, (_, i) => i + DAY_START);
   // Pixels per hour. Comfortable = readable on mobile. Full-day mode squeezes a

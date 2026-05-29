@@ -60,7 +60,9 @@ function place(
   return null;
 }
 
-/** Build per-day free slots inside working hours, given today's events. */
+/** Build per-day free slots inside working hours, given today's events.
+ *  When `opts.day` is today, the free window is clamped to "now + 5min" so the
+ *  planner never proposes blocks in the past. */
 export function dailyFreeSlots(opts: {
   day: Date;
   working: WorkingHours;
@@ -68,7 +70,9 @@ export function dailyFreeSlots(opts: {
 }) {
   const dayStart = combineDateAndTime(opts.day, opts.working.start);
   const dayEnd = combineDateAndTime(opts.day, opts.working.end);
-  return freeSlotsInDay({ dayStart, dayEnd, busy: opts.busy });
+  const now = new Date();
+  const isToday = opts.day.toDateString() === now.toDateString();
+  return freeSlotsInDay({ dayStart, dayEnd, busy: opts.busy, now: isToday ? now : undefined });
 }
 
 /** Score-cutoff for an item to be eligible for focus windows. */

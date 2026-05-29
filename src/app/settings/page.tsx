@@ -2,7 +2,9 @@ import Link from "next/link";
 import { PageHeader } from "@/components/glass/PageHeader";
 import { GlassCard } from "@/components/glass/GlassCard";
 import { PushToggle } from "@/components/settings/PushToggle";
+import { FocusWindowsEditor } from "@/components/settings/FocusWindowsEditor";
 import { supabaseServer, supabaseService } from "@/lib/supabase/server";
+import type { FocusWindow, WorkingHours } from "@/types/database";
 
 export const dynamic = "force-dynamic";
 
@@ -56,6 +58,13 @@ export default async function SettingsPage({
             {profile?.timezone ?? "—"} · {profile?.working_hours?.start ?? "06:00"}–{profile?.working_hours?.end ?? "21:00"}
           </p>
         </GlassCard>
+
+        <FocusWindowsEditor
+          initialFocusWindows={(profile?.focus_windows ?? []) as FocusWindow[]}
+          initialWorkingHours={
+            ((profile?.working_hours as WorkingHours | null) ?? { start: "06:00", end: "21:00" }) as WorkingHours
+          }
+        />
 
         <GlassCard inset>
           <div className="flex items-center justify-between">
