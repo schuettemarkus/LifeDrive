@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Calendar } from "lucide-react";
+import Link from "next/link";
 import { GlassCard } from "@/components/glass/GlassCard";
 import { areaColor } from "@/lib/design";
 import type { MockBlock } from "@/lib/mock-data";
@@ -64,23 +65,8 @@ export function ScheduleStrip({
               const height = Math.max(28, bottom - top);
               const c = b.area ? areaColor(b.area) : "#A1A1AA";
               const isFocus = b.kind === "focus";
-              return (
-                <motion.div
-                  key={b.id}
-                  initial={{ opacity: 0, x: 6 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.05 * i, duration: 0.35 }}
-                  className="absolute right-0 left-2 flex flex-col justify-center overflow-hidden rounded-2xl px-3 py-1.5"
-                  style={{
-                    top,
-                    height,
-                    background: isFocus
-                      ? "linear-gradient(135deg, rgba(124,92,255,0.32) 0%, rgba(0,212,255,0.18) 100%)"
-                      : "rgba(255,255,255,0.06)",
-                    border: isFocus ? "1px solid rgba(124,92,255,0.5)" : "1px solid rgba(255,255,255,0.08)",
-                    boxShadow: isFocus ? "0 6px 18px rgba(124,92,255,0.25)" : undefined,
-                  }}
-                >
+              const inner = (
+                <>
                   <div className="flex items-center gap-1.5">
                     {isFocus && <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: c }} />}
                     <span className="truncate text-[13px] font-medium text-white/95">{b.title}</span>
@@ -90,6 +76,39 @@ export function ScheduleStrip({
                       {fmtTime(b.start)} – {fmtTime(b.end)}
                     </span>
                   )}
+                </>
+              );
+              const style = {
+                top,
+                height,
+                background: isFocus
+                  ? "linear-gradient(135deg, rgba(124,92,255,0.32) 0%, rgba(0,212,255,0.18) 100%)"
+                  : "rgba(255,255,255,0.06)",
+                border: isFocus ? "1px solid rgba(124,92,255,0.5)" : "1px solid rgba(255,255,255,0.08)",
+                boxShadow: isFocus ? "0 6px 18px rgba(124,92,255,0.25)" : undefined,
+              } as const;
+              const className =
+                "absolute right-0 left-2 flex flex-col justify-center overflow-hidden rounded-2xl px-3 py-1.5";
+              const motionProps = {
+                initial: { opacity: 0, x: 6 },
+                animate: { opacity: 1, x: 0 },
+                transition: { delay: 0.05 * i, duration: 0.35 },
+              };
+              if (b.itemId) {
+                return (
+                  <motion.div key={b.id} {...motionProps} style={style} className={className}>
+                    <Link
+                      href={`/item/${b.itemId}`}
+                      className="no-tap-highlight flex flex-1 flex-col justify-center"
+                    >
+                      {inner}
+                    </Link>
+                  </motion.div>
+                );
+              }
+              return (
+                <motion.div key={b.id} {...motionProps} style={style} className={className}>
+                  {inner}
                 </motion.div>
               );
             })}

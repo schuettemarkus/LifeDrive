@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { TabBar } from "@/components/glass/TabBar";
+import { PullToRefresh } from "@/components/glass/PullToRefresh";
 import { QueryProvider } from "@/lib/query-provider";
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -43,7 +44,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="dark">
       <body className="min-h-screen">
         <QueryProvider>
-          <div className="mx-auto max-w-xl pb-tabbar">{children}</div>
+          <PullToRefresh>
+            <div className="mx-auto max-w-xl pb-tabbar">{children}</div>
+          </PullToRefresh>
           <TabBar />
         </QueryProvider>
       </body>

@@ -48,22 +48,18 @@ export function TabBar() {
               key={t.href}
               href={t.href}
               prefetch
-              className="no-tap-highlight relative flex flex-1 flex-col items-center gap-0.5 py-1.5"
+              aria-label={t.label}
+              className="no-tap-highlight relative flex flex-1 flex-col items-center justify-center py-2.5"
               aria-current={active ? "page" : undefined}
             >
-              <div className="relative">
-                <Icon className={cn("h-5 w-5 transition-colors", active ? "text-white" : "text-white/55")} />
-                {active && (
-                  <motion.div
-                    layoutId="tab-active-dot"
-                    transition={SPRING}
-                    className="absolute -bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-accent-cyan"
-                  />
-                )}
-              </div>
-              <span className={cn("text-[10px] font-medium tracking-tight", active ? "text-white" : "text-white/50")}>
-                {t.label.toLowerCase()}
-              </span>
+              <Icon className={cn("h-6 w-6 transition-colors", active ? "text-white" : "text-white/55")} />
+              {active && (
+                <motion.div
+                  layoutId="tab-active-dot"
+                  transition={SPRING}
+                  className="absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-accent-cyan"
+                />
+              )}
             </Link>
           );
         })}

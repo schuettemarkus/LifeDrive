@@ -19,6 +19,8 @@ export type MockBlock = {
   area?: LifeAreaKey;
   start: string;
   end: string;
+  /** When this block corresponds to a LifeDrive item, supply its ID so the strip can link to /item/[id]. */
+  itemId?: string | null;
 };
 
 export type MockPrinciple = {

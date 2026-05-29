@@ -59,6 +59,7 @@ export function EventStrip() {
     area: e.isLifeDrive ? "growth" : undefined, // could be enriched via the item id lookup
     start: e.start,
     end: e.end,
+    itemId: e.itemId,
   })).filter((b) => b.start && b.end) as (MockBlock & { area?: LifeAreaKey })[];
 
   return <ScheduleStrip blocks={blocks} />;

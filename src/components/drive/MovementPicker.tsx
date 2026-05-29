@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Dumbbell,
@@ -12,7 +12,9 @@ import {
   CircleDot,
   Check,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { GlassCard } from "@/components/glass/GlassCard";
+import { SwipeRow } from "@/components/glass/SwipeRow";
 import { Celebration } from "@/components/glass/Celebration";
 import type { MovementKind, MovementLog } from "@/types/database";
 
@@ -38,25 +40,25 @@ export function MovementPicker({
 }: {
   initialLogs: MovementLog[];
 }) {
+  const router = useRouter();
   const [logs, setLogs] = useState<MovementLog[]>(initialLogs);
   const [busyKind, setBusyKind] = useState<MovementKind | null>(null);
   const [customOpen, setCustomOpen] = useState(false);
   const [customText, setCustomText] = useState("");
   const [celebrate, setCelebrate] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const scrollerRef = useRef<HTMLDivElement>(null);
+  const [hidden, setHidden] = useState<Set<MovementKind>>(new Set());
 
-  // Aggregate the streak hint per kind so users see they're building a pattern.
   const countByKind = useMemo(() => {
     const map = new Map<MovementKind, number>();
     for (const l of logs) map.set(l.kind, (map.get(l.kind) ?? 0) + 1);
     return map;
   }, [logs]);
 
+  const today = new Date().toISOString().slice(0, 10);
   const doneToday = useMemo(() => {
-    const day = new Date().toISOString().slice(0, 10);
-    return new Set(logs.filter((l) => l.day === day).map((l) => l.kind));
-  }, [logs]);
+    return new Set(logs.filter((l) => l.day === today).map((l) => l.kind));
+  }, [logs, today]);
 
   async function log(kind: MovementKind, custom?: string) {
     setBusyKind(kind);
@@ -71,6 +73,7 @@ export function MovementPicker({
       if (!res.ok) throw new Error(j.error ?? "Save failed");
       setLogs((prev) => [j.log as MovementLog, ...prev]);
       setCelebrate((n) => n + 1);
+      router.refresh();
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -78,12 +81,20 @@ export function MovementPicker({
     }
   }
 
-  function pick(opt: Option) {
-    if (opt.kind === "other") {
+  function pick(kind: MovementKind) {
+    if (kind === "other") {
       setCustomOpen(true);
       return;
     }
-    void log(opt.kind);
+    void log(kind);
+  }
+
+  function dismiss(kind: MovementKind) {
+    setHidden((prev) => {
+      const next = new Set(prev);
+      next.add(kind);
+      return next;
+    });
   }
 
   function submitCustom() {
@@ -97,6 +108,15 @@ export function MovementPicker({
     setCustomOpen(false);
   }
 
+  // Order: not-done first (in their declared order), then done.
+  const sorted = [...OPTIONS]
+    .filter((o) => !hidden.has(o.kind))
+    .sort((a, b) => {
+      const ad = doneToday.has(a.kind) ? 1 : 0;
+      const bd = doneToday.has(b.kind) ? 1 : 0;
+      return ad - bd;
+    });
+
   return (
     <motion.section
       initial={{ opacity: 0, y: 12 }}
@@ -109,50 +129,80 @@ export function MovementPicker({
         today's movement
       </h2>
 
-      <div
-        ref={scrollerRef}
-        className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 scrollbar-none"
-        style={{ scrollPaddingInline: 16 }}
-      >
-        {OPTIONS.map((opt, i) => {
-          const Icon = opt.icon;
-          const done = doneToday.has(opt.kind);
-          const count = countByKind.get(opt.kind) ?? 0;
-          return (
-            <motion.button
-              key={opt.kind}
-              whileTap={{ scale: 0.96 }}
-              onClick={() => pick(opt)}
-              disabled={busyKind === opt.kind}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.04 * i }}
-              className={`relative snap-start shrink-0 grow-0 basis-[44%] rounded-glass border p-4 text-left transition-colors ${
-                done
-                  ? "border-emerald-400/40 bg-emerald-400/10"
-                  : "border-white/10 bg-white/[0.04] hover:bg-white/[0.07]"
-              }`}
-            >
-              {done && (
-                <span className="absolute right-2 top-2 grid h-5 w-5 place-items-center rounded-full bg-emerald-400/90 text-black">
-                  <Check className="h-3 w-3" />
-                </span>
-              )}
-              <Icon className={`h-6 w-6 ${done ? "text-emerald-300" : "text-white/85"}`} />
-              <p className="mt-3 text-[15px] font-semibold tracking-tight text-white">{opt.label}</p>
-              <p className="mt-0.5 text-[11px] text-white/45">{opt.hint}</p>
-              {count > 0 && (
-                <p className="mt-2 text-[10px] uppercase tracking-wider text-white/35">
-                  {count}× in 30 days
-                </p>
-              )}
-            </motion.button>
-          );
-        })}
+      <div className="space-y-2">
+        <AnimatePresence initial={false}>
+          {sorted.map((opt, i) => {
+            const Icon = opt.icon;
+            const done = doneToday.has(opt.kind);
+            const count = countByKind.get(opt.kind) ?? 0;
+            return (
+              <motion.div
+                key={opt.kind}
+                layout
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.3, delay: 0.04 * i }}
+              >
+                <SwipeRow
+                  onComplete={() => {
+                    if (!done) pick(opt.kind);
+                  }}
+                  onSnooze={() => dismiss(opt.kind)}
+                >
+                  <motion.button
+                    whileTap={{ scale: 0.985 }}
+                    onClick={() => pick(opt.kind)}
+                    disabled={busyKind === opt.kind}
+                    className="w-full text-left"
+                  >
+                    <GlassCard
+                      inset
+                      variant={done ? "subtle" : "default"}
+                      className="flex items-center gap-3"
+                      style={{ opacity: done ? 0.65 : 1 }}
+                    >
+                      <span
+                        className="grid h-10 w-10 shrink-0 place-items-center rounded-full border"
+                        style={{
+                          borderColor: done ? "transparent" : "rgba(255,255,255,0.18)",
+                          background: done
+                            ? "linear-gradient(135deg,#7C5CFF,#00D4FF)"
+                            : "rgba(255,255,255,0.05)",
+                        }}
+                      >
+                        {done ? (
+                          <Check className="h-4 w-4 text-white" />
+                        ) : (
+                          <Icon className="h-5 w-5 text-white/85" />
+                        )}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p
+                          className={`truncate text-[15px] font-semibold ${
+                            done ? "text-white/55 line-through" : "text-white/95"
+                          }`}
+                        >
+                          {opt.label}
+                        </p>
+                        <p className="mt-0.5 text-[11px] text-white/45">{opt.hint}</p>
+                      </div>
+                      {count > 0 && (
+                        <span className="shrink-0 rounded-pill border border-white/15 bg-white/5 px-2 py-0.5 text-[10px] uppercase tracking-wider text-white/65">
+                          {count}× / 30d
+                        </span>
+                      )}
+                    </GlassCard>
+                  </motion.button>
+                </SwipeRow>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
       </div>
 
-      <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-white/30">
-        swipe to scroll · tap to log
+      <p className="mt-3 text-center text-[10px] uppercase tracking-[0.18em] text-white/30">
+        swipe right → log it · swipe left → not today
       </p>
 
       <AnimatePresence>

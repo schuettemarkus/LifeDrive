@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Trash2, Pencil, Check, X } from "lucide-react";
 import { GlassCard } from "@/components/glass/GlassCard";
@@ -25,6 +25,7 @@ export function HabitList({
   initialHabits: Habit[];
   initialCompletions: HabitCompletion[];
 }) {
+  const router = useRouter();
   const [habits, setHabits] = useState<Habit[]>(initialHabits);
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -58,6 +59,7 @@ export function HabitList({
       if (!res.ok) throw new Error(j.error ?? "Failed");
       setHabits((prev) => [...prev, j.habit as Habit]);
       setAdding(false);
+      router.refresh();
     } catch (e: any) {
       setErr(e.message);
     } finally {
@@ -78,6 +80,7 @@ export function HabitList({
       if (!res.ok) throw new Error(j.error ?? "Failed");
       setHabits((prev) => prev.map((h) => (h.id === id ? (j.habit as Habit) : h)));
       setEditingId(null);
+      router.refresh();
     } catch (e: any) {
       setErr(e.message);
     } finally {
@@ -90,6 +93,7 @@ export function HabitList({
     if (!ok) return;
     setHabits((prev) => prev.filter((h) => h.id !== id));
     await fetch(`/api/habits/${id}`, { method: "DELETE" });
+    router.refresh();
   }
 
   async function toggleActive(habit: Habit) {
@@ -99,6 +103,7 @@ export function HabitList({
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ active: !habit.active }),
     });
+    router.refresh();
   }
 
   return (

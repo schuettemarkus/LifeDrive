@@ -119,7 +119,10 @@ export default async function DailyDrivePage() {
       .from("habit_completions")
       .select("*")
       .eq("user_id", user!.id)
-      .eq("completed_on", todayInTz((null as any))),
+      .gte(
+        "completed_on",
+        new Date(Date.now() - 60 * 24 * 3600 * 1000).toISOString().slice(0, 10),
+      ),
     supabase
       .from("movement_logs")
       .select("*")
@@ -167,8 +170,11 @@ export default async function DailyDrivePage() {
       .eq("id", principle.id);
   }
 
+  const today = todayInTz(tz);
   const habitsToday = (habits ?? []) as any[];
-  const habitsDoneToday = (habitCompletions ?? []).length;
+  const habitsDoneToday = (habitCompletions ?? []).filter(
+    (c: any) => c.completed_on === today,
+  ).length;
   const focusDoneToday = lockedItems.length - stillOpen.length;
   const counts = {
     focusTotal: lockedItems.length,
@@ -221,7 +227,11 @@ export default async function DailyDrivePage() {
         />
       )}
       <TodaysFocus items={focusItems} totalLocked={lockedItems.length} />
-      <TodaysHabits habits={(habits ?? []) as any} completions={(habitCompletions ?? []) as any} />
+      <TodaysHabits
+        habits={(habits ?? []) as any}
+        completions={(habitCompletions ?? []) as any}
+        today={today}
+      />
       {calendarConnected ? (
         <UpcomingEvents />
       ) : (
