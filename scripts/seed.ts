@@ -71,7 +71,7 @@ async function findOwnerUserId(email: string): Promise<string> {
 }
 
 async function ensureHousehold(ownerId: string) {
-  // Reuse if the owner is already in a household.
+  // 1. Reuse if the owner's profile already points at a household.
   const { data: prof } = await admin
     .from("profiles")
     .select("household_id")
@@ -79,13 +79,31 @@ async function ensureHousehold(ownerId: string) {
     .maybeSingle();
   if (prof?.household_id) return prof.household_id as string;
 
-  // Try by name first.
-  const { data: existing } = await admin
+  // 2. Reuse if the owner is already a member of any household (e.g. they
+  //    accepted an invite but their profile.household_id wasn't stamped).
+  const { data: existingMembership } = await admin
+    .from("household_members")
+    .select("household_id")
+    .eq("user_id", ownerId)
+    .limit(1);
+  if (existingMembership && existingMembership.length > 0) {
+    const id = existingMembership[0].household_id as string;
+    await admin.from("profiles").update({ household_id: id }).eq("id", ownerId);
+    return id;
+  }
+
+  // 3. Reuse the oldest household with this name. .limit(1) is robust to
+  //    transient duplicates (use .maybeSingle() and it'll erroneously fall
+  //    through on multi-match, creating yet another duplicate).
+  const { data: byName } = await admin
     .from("households")
     .select("id")
     .eq("name", HOUSEHOLD_NAME)
-    .maybeSingle();
-  let householdId = existing?.id as string | undefined;
+    .order("created_at", { ascending: true })
+    .limit(1);
+  let householdId = byName && byName.length > 0 ? (byName[0].id as string) : undefined;
+
+  // 4. Otherwise create.
   if (!householdId) {
     const { data, error } = await admin
       .from("households")
@@ -95,6 +113,7 @@ async function ensureHousehold(ownerId: string) {
     if (error || !data) throw error ?? new Error("household insert failed");
     householdId = data.id as string;
   }
+
   await admin.from("household_members").upsert({
     household_id: householdId,
     user_id: ownerId,
