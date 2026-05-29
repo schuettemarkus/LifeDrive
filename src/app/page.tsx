@@ -81,13 +81,16 @@ export default async function DailyDrivePage() {
   const distribution = computeAreaDistribution(allItems as any);
   const top = todaysThree(allItems as any, distribution);
 
-  const blockRows = (blocks ?? []) as Array<{
+  type BlockRow = {
     id: string;
     item_id: string;
     starts_at: string;
     ends_at: string;
-    items?: { title: string; life_area: string | null } | null;
-  }>;
+    items?: { title: string; life_area: string | null }[] | { title: string; life_area: string | null } | null;
+  };
+  const blockRows = (blocks ?? []) as unknown as BlockRow[];
+  const blockItem = (b: BlockRow) =>
+    Array.isArray(b.items) ? b.items[0] ?? null : b.items ?? null;
   const focusItems: MockItem[] = top.map((it) => {
     const block = blockRows.find((b) => b.item_id === it.id);
     return {
@@ -103,14 +106,17 @@ export default async function DailyDrivePage() {
     };
   });
 
-  const scheduleBlocks: MockBlock[] = blockRows.map((b) => ({
-    id: b.id,
-    kind: "focus",
-    title: b.items?.title ?? "focus",
-    area: (b.items?.life_area as LifeAreaKey | null) ?? undefined,
-    start: b.starts_at,
-    end: b.ends_at,
-  }));
+  const scheduleBlocks: MockBlock[] = blockRows.map((b) => {
+    const item = blockItem(b);
+    return {
+      id: b.id,
+      kind: "focus" as const,
+      title: item?.title ?? "focus",
+      area: (item?.life_area as LifeAreaKey | null) ?? undefined,
+      start: b.starts_at,
+      end: b.ends_at,
+    };
+  });
 
   const resting = allItems.filter((i: any) => i.status !== "done" && i.status !== "someday").length - top.length;
 

@@ -1,16 +1,15 @@
 /**
- * Hand-written database types that satisfy @supabase/supabase-js v2's
- * GenericSchema constraint. Notably:
- *   - Every Row/Insert/Update must be assignable to {[k: string]: unknown}.
- *     TypeScript only allows this for `type` aliases, NOT for `interface`
- *     declarations. Keep these as `type`.
- *   - The public schema must expose Tables, Views, Functions, Enums,
- *     CompositeTypes — even when empty — or the entire table type
- *     collapses to `never` and `.update()/.insert()` arguments become
- *     uncallable.
+ * Hand-written database types.
+ *
+ * Supabase JS v2's GenericSchema constraint (in @supabase/postgrest-js)
+ * requires every Row / Insert / Update to be assignable to
+ * Record<string, unknown>. We intersect each with that so the constraint
+ * holds, and use `{ [_ in never]: never }` for the empty Views / Functions
+ * / CompositeTypes maps (matching what `supabase gen types` produces).
+ *
+ * Without these the table types silently collapse to `never` and every
+ * chained .update()/.insert() rejects all payloads.
  */
-import type { LifeAreaKey } from "@/lib/design";
-
 export type ItemType = "task" | "project";
 export type ItemStatus = "inbox" | "backlog" | "this_week" | "doing" | "done" | "someday";
 export type ItemVisibility = "private" | "household";
@@ -20,6 +19,8 @@ export type HouseholdRole = "owner" | "member";
 
 export type WorkingHours = { start: string; end: string };
 export type FocusWindow = { start: string; end: string; label?: string };
+
+type Indexed = Record<string, unknown>;
 
 export type Profile = {
   id: string;
@@ -68,7 +69,7 @@ export type Item = {
   notes: string | null;
   type: ItemType;
   parent_id: string | null;
-  life_area: LifeAreaKey | null;
+  life_area: string | null;
   visibility: ItemVisibility;
   status: ItemStatus;
   impact: number;
@@ -142,9 +143,9 @@ export type GoogleAccount = {
 };
 
 type TableShape<Row> = {
-  Row: Row;
-  Insert: { [K in keyof Row]?: Row[K] };
-  Update: { [K in keyof Row]?: Row[K] };
+  Row: Row & Indexed;
+  Insert: Partial<Row> & Indexed;
+  Update: Partial<Row> & Indexed;
   Relationships: [];
 };
 
@@ -162,8 +163,8 @@ export type Database = {
       reviews: TableShape<Review>;
       google_accounts: TableShape<GoogleAccount>;
     };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Views: { [_ in never]: never };
+    Functions: { [_ in never]: never };
     Enums: {
       item_type: ItemType;
       item_status: ItemStatus;
@@ -172,6 +173,6 @@ export type Database = {
       schedule_status: ScheduleStatus;
       household_role: HouseholdRole;
     };
-    CompositeTypes: Record<string, never>;
+    CompositeTypes: { [_ in never]: never };
   };
 };

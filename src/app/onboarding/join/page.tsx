@@ -1,11 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/glass/PageHeader";
 import { GlassCard } from "@/components/glass/GlassCard";
 
 export default function JoinPage() {
+  return (
+    <Suspense fallback={<PageHeader eyebrow="join household" title="Just a moment" />}>
+      <JoinInner />
+    </Suspense>
+  );
+}
+
+function JoinInner() {
   const search = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "joining" | "joined" | "error">("idle");

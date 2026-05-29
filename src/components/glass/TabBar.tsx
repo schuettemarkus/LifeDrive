@@ -7,13 +7,15 @@ import { Home, Inbox, KanbanSquare, Calendar, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SPRING } from "@/lib/design";
 
-const TABS = [
+type Tab = { href: string; label: string; icon: typeof Home; primary?: boolean };
+
+const TABS: Tab[] = [
   { href: "/", label: "Drive", icon: Home },
   { href: "/boards", label: "Boards", icon: KanbanSquare },
   { href: "/capture", label: "Capture", icon: Inbox, primary: true },
   { href: "/calendar", label: "Calendar", icon: Calendar },
   { href: "/review", label: "Review", icon: Sparkles },
-] as const;
+];
 
 export function TabBar() {
   const pathname = usePathname();

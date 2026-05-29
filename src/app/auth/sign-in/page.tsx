@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Mail } from "lucide-react";
 import { GlassCard } from "@/components/glass/GlassCard";
@@ -8,6 +8,14 @@ import { PageHeader } from "@/components/glass/PageHeader";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
 export default function SignInPage() {
+  return (
+    <Suspense fallback={<PageHeader eyebrow="welcome back" title="Sign in to Life Drive" />}>
+      <SignInForm />
+    </Suspense>
+  );
+}
+
+function SignInForm() {
   const router = useRouter();
   const search = useSearchParams();
   const next = search.get("next") ?? "/";
