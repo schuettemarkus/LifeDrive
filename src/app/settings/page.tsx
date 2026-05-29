@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/glass/PageHeader";
 import { GlassCard } from "@/components/glass/GlassCard";
+import { PushToggle } from "@/components/settings/PushToggle";
 import { supabaseServer, supabaseService } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -70,6 +71,18 @@ export default async function SettingsPage({
               {connected ? "reconnect" : "connect"}
             </Link>
           </div>
+        </GlassCard>
+
+        <GlassCard inset>
+          <p className="text-[10px] uppercase tracking-[0.18em] text-white/40">notifications</p>
+          <p className="mt-1 font-medium text-white">Daily morning briefing & evening review</p>
+          <p className="text-xs text-white/55">
+            We'll push the principle + your top 3 around 6am, and an "anything resting?" check around 8pm.
+          </p>
+          <PushToggle />
+          <p className="mt-2 text-[10px] text-white/40">
+            iOS Safari: tap the share icon → Add to Home Screen first, then enable notifications from the installed app.
+          </p>
         </GlassCard>
 
         <GlassCard inset>

@@ -169,6 +169,19 @@ export type DailyActivity = {
   last_action_at: string | null;
 };
 
+export type PushSubscription = {
+  id: string;
+  user_id: string;
+  endpoint: string;
+  p256dh: string;
+  auth_key: string;
+  user_agent: string | null;
+  morning_briefing: boolean;
+  evening_review: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 export type AiUsage = {
   id: number;
   user_id: string;
@@ -214,6 +227,7 @@ export type Database = {
       google_accounts: TableShape<GoogleAccount>;
       daily_activity: TableShape<DailyActivity>;
       ai_usage: TableShape<AiUsage>;
+      push_subscriptions: TableShape<PushSubscription>;
     };
     Views: { [_ in never]: never };
     Functions: {
